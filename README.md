@@ -20,8 +20,6 @@ Analyse des Schweizer Jobmarkts 2026: Welche Skills zahlen sich aus und wo bezah
 
 ## KI-Nutzung
 Code wurde mit GitHub Copilot und Claude (Anthropic) als KI-Assistenten erstellt.
-Alle KI-generierten Abschnitte sind als solche deklariert.
 
 ## Resultate
-5 Visualisierungen: Top Skills, Gehalt nach Stadt, Seniority vs. Gehalt,
-Arbeitsmodell nach Branche, Lohn-Lücke BFS vs. Inserate
+5 Visualisierungen: Top Skills, Gehalt nach Stadt, Seniority vs. Gehalt, Arbeitsmodell nach Branche, Lohn-Lücke BFS vs. Inserate
