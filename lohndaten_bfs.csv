@@ -1,0 +1,369 @@
+﻿region,wirtschaftszweig,medianlohn_chf
+Schweiz,Forstwirtschaft,6522.0
+Ostschweiz,Forstwirtschaft,6495.0
+Schweiz,"Bergbau, Gewinnung v. Steinen u. Erden",6198.0
+Genferseeregion,"Bergbau, Gewinnung v. Steinen u. Erden",6412.0
+Espace Mittelland,"Bergbau, Gewinnung v. Steinen u. Erden",6357.0
+Nordwestschweiz,"Bergbau, Gewinnung v. Steinen u. Erden",6890.0
+Zürich,"Bergbau, Gewinnung v. Steinen u. Erden",6423.0
+Ostschweiz,"Bergbau, Gewinnung v. Steinen u. Erden",6028.0
+Zentralschweiz,"Bergbau, Gewinnung v. Steinen u. Erden",6166.0
+Tessin,"Bergbau, Gewinnung v. Steinen u. Erden",5871.0
+Schweiz,Verarbeitendes Gewerbe/Herst. v. Waren,6378.0
+Genferseeregion,Verarbeitendes Gewerbe/Herst. v. Waren,6693.0
+Espace Mittelland,Verarbeitendes Gewerbe/Herst. v. Waren,6127.0
+Nordwestschweiz,Verarbeitendes Gewerbe/Herst. v. Waren,7430.0
+Zürich,Verarbeitendes Gewerbe/Herst. v. Waren,6542.0
+Ostschweiz,Verarbeitendes Gewerbe/Herst. v. Waren,6096.0
+Zentralschweiz,Verarbeitendes Gewerbe/Herst. v. Waren,6369.0
+Tessin,Verarbeitendes Gewerbe/Herst. v. Waren,4586.0
+Schweiz,Herst. v. Nahrungsmitteln; Getränkeherst.,5296.0
+Genferseeregion,Herst. v. Nahrungsmitteln; Getränkeherst.,5541.0
+Espace Mittelland,Herst. v. Nahrungsmitteln; Getränkeherst.,5132.0
+Nordwestschweiz,Herst. v. Nahrungsmitteln; Getränkeherst.,5250.0
+Zürich,Herst. v. Nahrungsmitteln; Getränkeherst.,5395.0
+Ostschweiz,Herst. v. Nahrungsmitteln; Getränkeherst.,5158.0
+Zentralschweiz,Herst. v. Nahrungsmitteln; Getränkeherst.,5671.0
+Tessin,Herst. v. Nahrungsmitteln; Getränkeherst.,4371.0
+Schweiz,Tabakverarbeitung,9784.0
+Schweiz,Herst. v. Textilien u. Bekleidung,5208.0
+Genferseeregion,Herst. v. Textilien u. Bekleidung,4422.0
+Espace Mittelland,Herst. v. Textilien u. Bekleidung,5415.0
+Nordwestschweiz,Herst. v. Textilien u. Bekleidung,5095.0
+Zürich,Herst. v. Textilien u. Bekleidung,5285.0
+Ostschweiz,Herst. v. Textilien u. Bekleidung,5336.0
+Zentralschweiz,Herst. v. Textilien u. Bekleidung,5206.0
+Tessin,Herst. v. Textilien u. Bekleidung,3331.0
+Schweiz,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,5973.0
+Genferseeregion,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,6064.0
+Espace Mittelland,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,5924.0
+Nordwestschweiz,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,6067.0
+Zürich,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,6268.0
+Ostschweiz,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,5846.0
+Zentralschweiz,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,5978.0
+Tessin,Herst. v. Holzwaren u. Papier; Druckerzeugnisse,5421.0
+Schweiz,Kokerei; Herst. v. chemischen Erz.,7608.0
+Genferseeregion,Kokerei; Herst. v. chemischen Erz.,8351.0
+Espace Mittelland,Kokerei; Herst. v. chemischen Erz.,6509.0
+Nordwestschweiz,Kokerei; Herst. v. chemischen Erz.,8058.0
+Zürich,Kokerei; Herst. v. chemischen Erz.,6705.0
+Ostschweiz,Kokerei; Herst. v. chemischen Erz.,6487.0
+Zentralschweiz,Kokerei; Herst. v. chemischen Erz.,6650.0
+Tessin,Kokerei; Herst. v. chemischen Erz.,5095.0
+Schweiz,Herst. v. pharmazeutischen Erzeugnissen,9835.0
+Genferseeregion,Herst. v. pharmazeutischen Erzeugnissen,8063.0
+Espace Mittelland,Herst. v. pharmazeutischen Erzeugnissen,7995.0
+Nordwestschweiz,Herst. v. pharmazeutischen Erzeugnissen,10851.0
+Zürich,Herst. v. pharmazeutischen Erzeugnissen,8203.0
+Ostschweiz,Herst. v. pharmazeutischen Erzeugnissen,7848.0
+Zentralschweiz,Herst. v. pharmazeutischen Erzeugnissen,10339.0
+Tessin,Herst. v. pharmazeutischen Erzeugnissen,5383.0
+Schweiz,Herst. v. Gummi- u. Kunststoffwaren,5984.0
+Genferseeregion,Herst. v. Gummi- u. Kunststoffwaren,6264.0
+Espace Mittelland,Herst. v. Gummi- u. Kunststoffwaren,5959.0
+Nordwestschweiz,Herst. v. Gummi- u. Kunststoffwaren,6115.0
+Zürich,Herst. v. Gummi- u. Kunststoffwaren,6240.0
+Ostschweiz,Herst. v. Gummi- u. Kunststoffwaren,5983.0
+Zentralschweiz,Herst. v. Gummi- u. Kunststoffwaren,5822.0
+Tessin,Herst. v. Gummi- u. Kunststoffwaren,4764.0
+Schweiz,Metallerzeugung; Herst. v. Metallerzeugnissen,6000.0
+Genferseeregion,Metallerzeugung; Herst. v. Metallerzeugnissen,5963.0
+Espace Mittelland,Metallerzeugung; Herst. v. Metallerzeugnissen,5957.0
+Nordwestschweiz,Metallerzeugung; Herst. v. Metallerzeugnissen,6124.0
+Zürich,Metallerzeugung; Herst. v. Metallerzeugnissen,6600.0
+Ostschweiz,Metallerzeugung; Herst. v. Metallerzeugnissen,6054.0
+Zentralschweiz,Metallerzeugung; Herst. v. Metallerzeugnissen,5983.0
+Tessin,Metallerzeugung; Herst. v. Metallerzeugnissen,4790.0
+Schweiz,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",6875.0
+Genferseeregion,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",7277.0
+Espace Mittelland,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",6282.0
+Nordwestschweiz,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",8103.0
+Zürich,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",7373.0
+Ostschweiz,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",6551.0
+Zentralschweiz,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",8572.0
+Tessin,"Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",3616.0
+Schweiz,Herst. v. elektrischen Ausrüstungen,6710.0
+Genferseeregion,Herst. v. elektrischen Ausrüstungen,6444.0
+Espace Mittelland,Herst. v. elektrischen Ausrüstungen,5963.0
+Nordwestschweiz,Herst. v. elektrischen Ausrüstungen,8137.0
+Zürich,Herst. v. elektrischen Ausrüstungen,6504.0
+Ostschweiz,Herst. v. elektrischen Ausrüstungen,6711.0
+Zentralschweiz,Herst. v. elektrischen Ausrüstungen,6568.0
+Tessin,Herst. v. elektrischen Ausrüstungen,3632.0
+Schweiz,Maschinenbau,6882.0
+Genferseeregion,Maschinenbau,7343.0
+Espace Mittelland,Maschinenbau,6715.0
+Nordwestschweiz,Maschinenbau,6793.0
+Zürich,Maschinenbau,7582.0
+Ostschweiz,Maschinenbau,6796.0
+Zentralschweiz,Maschinenbau,6760.0
+Tessin,Maschinenbau,5799.0
+Schweiz,Fahrzeugbau,6779.0
+Genferseeregion,Fahrzeugbau,6976.0
+Espace Mittelland,Fahrzeugbau,7354.0
+Nordwestschweiz,Fahrzeugbau,6122.0
+Zürich,Fahrzeugbau,6911.0
+Ostschweiz,Fahrzeugbau,6526.0
+Zentralschweiz,Fahrzeugbau,7043.0
+Tessin,Fahrzeugbau,5130.0
+Schweiz,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,6117.0
+Genferseeregion,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,6025.0
+Espace Mittelland,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,6193.0
+Nordwestschweiz,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,6508.0
+Zürich,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,6731.0
+Ostschweiz,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,5776.0
+Zentralschweiz,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,5759.0
+Tessin,Herst. v. Möbeln u. v. sonst. Waren; Rep. u. Install. Maschinen,4495.0
+Schweiz,Energieversorgung,8210.0
+Genferseeregion,Energieversorgung,8711.0
+Espace Mittelland,Energieversorgung,8201.0
+Nordwestschweiz,Energieversorgung,8860.0
+Zürich,Energieversorgung,8102.0
+Ostschweiz,Energieversorgung,7378.0
+Zentralschweiz,Energieversorgung,7775.0
+Tessin,Energieversorgung,6772.0
+Schweiz,Wasserversorgung; Abwasser- u. Abfallentsorgung,6192.0
+Genferseeregion,Wasserversorgung; Abwasser- u. Abfallentsorgung,5907.0
+Espace Mittelland,Wasserversorgung; Abwasser- u. Abfallentsorgung,6240.0
+Nordwestschweiz,Wasserversorgung; Abwasser- u. Abfallentsorgung,6466.0
+Zürich,Wasserversorgung; Abwasser- u. Abfallentsorgung,6496.0
+Ostschweiz,Wasserversorgung; Abwasser- u. Abfallentsorgung,6259.0
+Zentralschweiz,Wasserversorgung; Abwasser- u. Abfallentsorgung,5910.0
+Tessin,Wasserversorgung; Abwasser- u. Abfallentsorgung,5686.0
+Schweiz,Baugewerbe,6116.0
+Genferseeregion,Baugewerbe,6205.0
+Espace Mittelland,Baugewerbe,6017.0
+Nordwestschweiz,Baugewerbe,6011.0
+Zürich,Baugewerbe,6544.0
+Ostschweiz,Baugewerbe,5950.0
+Zentralschweiz,Baugewerbe,6174.0
+Tessin,Baugewerbe,5827.0
+Schweiz,Handel; Instandhaltung u. Rep. von Motorfahrz.,5556.0
+Genferseeregion,Handel; Instandhaltung u. Rep. von Motorfahrz.,5500.0
+Espace Mittelland,Handel; Instandhaltung u. Rep. von Motorfahrz.,5401.0
+Nordwestschweiz,Handel; Instandhaltung u. Rep. von Motorfahrz.,5811.0
+Zürich,Handel; Instandhaltung u. Rep. von Motorfahrz.,5570.0
+Ostschweiz,Handel; Instandhaltung u. Rep. von Motorfahrz.,5388.0
+Zentralschweiz,Handel; Instandhaltung u. Rep. von Motorfahrz.,6024.0
+Tessin,Handel; Instandhaltung u. Rep. von Motorfahrz.,5012.0
+Schweiz,Grosshandel; Handel u. Rep. v. Motorfahrz.,6529.0
+Genferseeregion,Grosshandel; Handel u. Rep. v. Motorfahrz.,6506.0
+Espace Mittelland,Grosshandel; Handel u. Rep. v. Motorfahrz.,6086.0
+Nordwestschweiz,Grosshandel; Handel u. Rep. v. Motorfahrz.,6742.0
+Zürich,Grosshandel; Handel u. Rep. v. Motorfahrz.,6884.0
+Ostschweiz,Grosshandel; Handel u. Rep. v. Motorfahrz.,6111.0
+Zentralschweiz,Grosshandel; Handel u. Rep. v. Motorfahrz.,6873.0
+Tessin,Grosshandel; Handel u. Rep. v. Motorfahrz.,5582.0
+Schweiz,Detailhandel,4798.0
+Genferseeregion,Detailhandel,4706.0
+Espace Mittelland,Detailhandel,4743.0
+Nordwestschweiz,Detailhandel,4808.0
+Zürich,Detailhandel,4860.0
+Ostschweiz,Detailhandel,4890.0
+Zentralschweiz,Detailhandel,4749.0
+Tessin,Detailhandel,4366.0
+Schweiz,Verkehr u. Lagerei,6171.0
+Genferseeregion,Verkehr u. Lagerei,5963.0
+Espace Mittelland,Verkehr u. Lagerei,6506.0
+Nordwestschweiz,Verkehr u. Lagerei,5848.0
+Zürich,Verkehr u. Lagerei,6525.0
+Ostschweiz,Verkehr u. Lagerei,5584.0
+Zentralschweiz,Verkehr u. Lagerei,5903.0
+Tessin,Verkehr u. Lagerei,5035.0
+Schweiz,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,6332.0
+Genferseeregion,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,6017.0
+Espace Mittelland,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,7103.0
+Nordwestschweiz,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,5863.0
+Zürich,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,6611.0
+Ostschweiz,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,5642.0
+Zentralschweiz,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,5921.0
+Tessin,Landverkehr; Schifffahrt; Luftfahrt; Lagerei,5040.0
+Schweiz,"Post-, Kurier- u. Expressdienste",5896.0
+Genferseeregion,"Post-, Kurier- u. Expressdienste",4286.0
+Espace Mittelland,"Post-, Kurier- u. Expressdienste",5970.0
+Nordwestschweiz,"Post-, Kurier- u. Expressdienste",5765.0
+Zürich,"Post-, Kurier- u. Expressdienste",4495.0
+Ostschweiz,"Post-, Kurier- u. Expressdienste",3833.0
+Zentralschweiz,"Post-, Kurier- u. Expressdienste",4394.0
+Schweiz,Gastgewerbe/Beherbergung u. Gastronomie,4337.0
+Genferseeregion,Gastgewerbe/Beherbergung u. Gastronomie,4237.0
+Espace Mittelland,Gastgewerbe/Beherbergung u. Gastronomie,4331.0
+Nordwestschweiz,Gastgewerbe/Beherbergung u. Gastronomie,4513.0
+Zürich,Gastgewerbe/Beherbergung u. Gastronomie,4495.0
+Ostschweiz,Gastgewerbe/Beherbergung u. Gastronomie,4321.0
+Zentralschweiz,Gastgewerbe/Beherbergung u. Gastronomie,4391.0
+Tessin,Gastgewerbe/Beherbergung u. Gastronomie,4110.0
+Schweiz,Information und Kommunikation,8644.0
+Genferseeregion,Information und Kommunikation,8451.0
+Espace Mittelland,Information und Kommunikation,8750.0
+Nordwestschweiz,Information und Kommunikation,8341.0
+Zürich,Information und Kommunikation,9167.0
+Ostschweiz,Information und Kommunikation,7549.0
+Zentralschweiz,Information und Kommunikation,8284.0
+Tessin,Information und Kommunikation,5503.0
+Schweiz,Verlagswesen; audiovisuelle Medien; Rundfunk,7622.0
+Genferseeregion,Verlagswesen; audiovisuelle Medien; Rundfunk,6524.0
+Espace Mittelland,Verlagswesen; audiovisuelle Medien; Rundfunk,6523.0
+Nordwestschweiz,Verlagswesen; audiovisuelle Medien; Rundfunk,7014.0
+Zürich,Verlagswesen; audiovisuelle Medien; Rundfunk,8374.0
+Ostschweiz,Verlagswesen; audiovisuelle Medien; Rundfunk,6167.0
+Zentralschweiz,Verlagswesen; audiovisuelle Medien; Rundfunk,7096.0
+Tessin,Verlagswesen; audiovisuelle Medien; Rundfunk,5765.0
+Schweiz,Telekommunikation,8869.0
+Genferseeregion,Telekommunikation,7367.0
+Espace Mittelland,Telekommunikation,9304.0
+Nordwestschweiz,Telekommunikation,6395.0
+Zürich,Telekommunikation,7949.0
+Ostschweiz,Telekommunikation,6677.0
+Zentralschweiz,Telekommunikation,6830.0
+Schweiz,Informationstechnologie u. Informationsdienstl.,8900.0
+Genferseeregion,Informationstechnologie u. Informationsdienstl.,8901.0
+Espace Mittelland,Informationstechnologie u. Informationsdienstl.,8419.0
+Nordwestschweiz,Informationstechnologie u. Informationsdienstl.,8729.0
+Zürich,Informationstechnologie u. Informationsdienstl.,9725.0
+Ostschweiz,Informationstechnologie u. Informationsdienstl.,7943.0
+Zentralschweiz,Informationstechnologie u. Informationsdienstl.,8564.0
+Tessin,Informationstechnologie u. Informationsdienstl.,5415.0
+Schweiz,Finanz- u. Versicherungsdienstleistungen,9196.0
+Genferseeregion,Finanz- u. Versicherungsdienstleistungen,9812.0
+Espace Mittelland,Finanz- u. Versicherungsdienstleistungen,7771.0
+Nordwestschweiz,Finanz- u. Versicherungsdienstleistungen,8579.0
+Zürich,Finanz- u. Versicherungsdienstleistungen,9983.0
+Ostschweiz,Finanz- u. Versicherungsdienstleistungen,7936.0
+Zentralschweiz,Finanz- u. Versicherungsdienstleistungen,7993.0
+Tessin,Finanz- u. Versicherungsdienstleistungen,8050.0
+Schweiz,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,9362.0
+Genferseeregion,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,10221.0
+Espace Mittelland,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,7519.0
+Nordwestschweiz,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,8506.0
+Zürich,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,10235.0
+Ostschweiz,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,7939.0
+Zentralschweiz,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,8490.0
+Tessin,Finanzdienstl.; mit Finanz- u. Versicherungsdienstl. verb. Tätigk.,8052.0
+Schweiz,Versicherungen,8762.0
+Genferseeregion,Versicherungen,6602.0
+Espace Mittelland,Versicherungen,9077.0
+Nordwestschweiz,Versicherungen,8770.0
+Zürich,Versicherungen,9438.0
+Ostschweiz,Versicherungen,7633.0
+Zentralschweiz,Versicherungen,7543.0
+Schweiz,Grundstücks- und Wohnungswesen,6735.0
+Genferseeregion,Grundstücks- und Wohnungswesen,6626.0
+Espace Mittelland,Grundstücks- und Wohnungswesen,6334.0
+Nordwestschweiz,Grundstücks- und Wohnungswesen,6940.0
+Zürich,Grundstücks- und Wohnungswesen,6980.0
+Ostschweiz,Grundstücks- und Wohnungswesen,6514.0
+Zentralschweiz,Grundstücks- und Wohnungswesen,6962.0
+Tessin,Grundstücks- und Wohnungswesen,5276.0
+Schweiz,"Freiberufliche, wissenschaftliche und technische Dienstl.",7677.0
+Genferseeregion,"Freiberufliche, wissenschaftliche und technische Dienstl.",7746.0
+Espace Mittelland,"Freiberufliche, wissenschaftliche und technische Dienstl.",7341.0
+Nordwestschweiz,"Freiberufliche, wissenschaftliche und technische Dienstl.",7916.0
+Zürich,"Freiberufliche, wissenschaftliche und technische Dienstl.",8098.0
+Ostschweiz,"Freiberufliche, wissenschaftliche und technische Dienstl.",6923.0
+Zentralschweiz,"Freiberufliche, wissenschaftliche und technische Dienstl.",7668.0
+Tessin,"Freiberufliche, wissenschaftliche und technische Dienstl.",6174.0
+Schweiz,Freiberufliche u. technische Dienstl.,7717.0
+Genferseeregion,Freiberufliche u. technische Dienstl.,7818.0
+Espace Mittelland,Freiberufliche u. technische Dienstl.,7232.0
+Nordwestschweiz,Freiberufliche u. technische Dienstl.,7754.0
+Zürich,Freiberufliche u. technische Dienstl.,8286.0
+Ostschweiz,Freiberufliche u. technische Dienstl.,7051.0
+Zentralschweiz,Freiberufliche u. technische Dienstl.,7948.0
+Tessin,Freiberufliche u. technische Dienstl.,6345.0
+Schweiz,Forschung u. Entwicklung,8764.0
+Genferseeregion,Forschung u. Entwicklung,8333.0
+Espace Mittelland,Forschung u. Entwicklung,8906.0
+Nordwestschweiz,Forschung u. Entwicklung,9132.0
+Zürich,Forschung u. Entwicklung,8729.0
+Ostschweiz,Forschung u. Entwicklung,8448.0
+Zentralschweiz,Forschung u. Entwicklung,8748.0
+Tessin,Forschung u. Entwicklung,5571.0
+Schweiz,"Sonst. freiberufl., wiss. u. techn. Tätigk.",6667.0
+Genferseeregion,"Sonst. freiberufl., wiss. u. techn. Tätigk.",6621.0
+Espace Mittelland,"Sonst. freiberufl., wiss. u. techn. Tätigk.",6908.0
+Nordwestschweiz,"Sonst. freiberufl., wiss. u. techn. Tätigk.",6749.0
+Zürich,"Sonst. freiberufl., wiss. u. techn. Tätigk.",7039.0
+Ostschweiz,"Sonst. freiberufl., wiss. u. techn. Tätigk.",6011.0
+Zentralschweiz,"Sonst. freiberufl., wiss. u. techn. Tätigk.",6486.0
+Tessin,"Sonst. freiberufl., wiss. u. techn. Tätigk.",5122.0
+Schweiz,Sonst. wirtschaftliche Dienstleistungen,5421.0
+Genferseeregion,Sonst. wirtschaftliche Dienstleistungen,5400.0
+Espace Mittelland,Sonst. wirtschaftliche Dienstleistungen,5606.0
+Nordwestschweiz,Sonst. wirtschaftliche Dienstleistungen,5673.0
+Zürich,Sonst. wirtschaftliche Dienstleistungen,5273.0
+Ostschweiz,Sonst. wirtschaftliche Dienstleistungen,5432.0
+Zentralschweiz,Sonst. wirtschaftliche Dienstleistungen,5686.0
+Tessin,Sonst. wirtschaftliche Dienstleistungen,4281.0
+Schweiz,Sonst. wirtschaftliche Dienstl. (ohne 78),5364.0
+Genferseeregion,Sonst. wirtschaftliche Dienstl. (ohne 78),5634.0
+Espace Mittelland,Sonst. wirtschaftliche Dienstl. (ohne 78),5535.0
+Nordwestschweiz,Sonst. wirtschaftliche Dienstl. (ohne 78),5251.0
+Zürich,Sonst. wirtschaftliche Dienstl. (ohne 78),5067.0
+Ostschweiz,Sonst. wirtschaftliche Dienstl. (ohne 78),5576.0
+Zentralschweiz,Sonst. wirtschaftliche Dienstl. (ohne 78),5364.0
+Tessin,Sonst. wirtschaftliche Dienstl. (ohne 78),4064.0
+Schweiz,Vermittlung u. Überlassung v. Arbeitskräften,5520.0
+Genferseeregion,Vermittlung u. Überlassung v. Arbeitskräften,5043.0
+Espace Mittelland,Vermittlung u. Überlassung v. Arbeitskräften,5731.0
+Nordwestschweiz,Vermittlung u. Überlassung v. Arbeitskräften,5899.0
+Zürich,Vermittlung u. Überlassung v. Arbeitskräften,6071.0
+Ostschweiz,Vermittlung u. Überlassung v. Arbeitskräften,5217.0
+Zentralschweiz,Vermittlung u. Überlassung v. Arbeitskräften,6077.0
+Tessin,Vermittlung u. Überlassung v. Arbeitskräften,4786.0
+Schweiz,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",8016.0
+Genferseeregion,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",8144.0
+Espace Mittelland,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",8529.0
+Nordwestschweiz,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",7740.0
+Zürich,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",7446.0
+Ostschweiz,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",7541.0
+Zentralschweiz,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",7880.0
+Tessin,"Öffentl. Verwaltung, Verteidigung; Sozialvers.",7735.0
+Schweiz,Erziehung und Unterricht,8673.0
+Genferseeregion,Erziehung und Unterricht,8368.0
+Espace Mittelland,Erziehung und Unterricht,8838.0
+Nordwestschweiz,Erziehung und Unterricht,9266.0
+Zürich,Erziehung und Unterricht,8641.0
+Ostschweiz,Erziehung und Unterricht,9022.0
+Zentralschweiz,Erziehung und Unterricht,8805.0
+Tessin,Erziehung und Unterricht,7879.0
+Schweiz,Gesundheits- u. Sozialwesen,6430.0
+Genferseeregion,Gesundheits- u. Sozialwesen,6638.0
+Espace Mittelland,Gesundheits- u. Sozialwesen,6149.0
+Nordwestschweiz,Gesundheits- u. Sozialwesen,6402.0
+Zürich,Gesundheits- u. Sozialwesen,6757.0
+Ostschweiz,Gesundheits- u. Sozialwesen,6400.0
+Zentralschweiz,Gesundheits- u. Sozialwesen,6175.0
+Tessin,Gesundheits- u. Sozialwesen,6134.0
+Schweiz,"Kunst, Unterhaltung und Erholung",6220.0
+Genferseeregion,"Kunst, Unterhaltung und Erholung",6866.0
+Espace Mittelland,"Kunst, Unterhaltung und Erholung",6116.0
+Nordwestschweiz,"Kunst, Unterhaltung und Erholung",6125.0
+Zürich,"Kunst, Unterhaltung und Erholung",6655.0
+Ostschweiz,"Kunst, Unterhaltung und Erholung",5526.0
+Zentralschweiz,"Kunst, Unterhaltung und Erholung",5776.0
+Tessin,"Kunst, Unterhaltung und Erholung",5651.0
+Schweiz,Erbringung v. sonst. Dienstleistungen,6187.0
+Genferseeregion,Erbringung v. sonst. Dienstleistungen,5999.0
+Espace Mittelland,Erbringung v. sonst. Dienstleistungen,6384.0
+Nordwestschweiz,Erbringung v. sonst. Dienstleistungen,5957.0
+Zürich,Erbringung v. sonst. Dienstleistungen,6654.0
+Ostschweiz,Erbringung v. sonst. Dienstleistungen,5674.0
+Zentralschweiz,Erbringung v. sonst. Dienstleistungen,5895.0
+Tessin,Erbringung v. sonst. Dienstleistungen,4549.0
+Schweiz,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",7209.0
+Genferseeregion,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",7491.0
+Espace Mittelland,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",6912.0
+Nordwestschweiz,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",7170.0
+Zürich,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",7906.0
+Ostschweiz,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",7087.0
+Zentralschweiz,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",6685.0
+Tessin,"Interessenvertretungen, relig. Verein.; Rep. v. Gebrauchsgütern",5444.0
+Schweiz,Sonst. persönliche Dienstleistungen,4076.0
+Genferseeregion,Sonst. persönliche Dienstleistungen,3826.0
+Espace Mittelland,Sonst. persönliche Dienstleistungen,4024.0
+Nordwestschweiz,Sonst. persönliche Dienstleistungen,4150.0
+Zürich,Sonst. persönliche Dienstleistungen,4372.0
+Ostschweiz,Sonst. persönliche Dienstleistungen,4025.0
+Zentralschweiz,Sonst. persönliche Dienstleistungen,4228.0
+Tessin,Sonst. persönliche Dienstleistungen,3535.0
