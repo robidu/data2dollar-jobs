@@ -134,11 +134,12 @@ KI wurde primär eingesetzt für:
 
 ## 8. Stack Overflow Fragen
 
-Im Rahmen dieses Projekts wurden folgende Stack Overflow Fragen konsultiert bzw. gestellt:
-
-1. [Scrapy priority system for sequential vs parallel requests](https://stackoverflow.com/questions/...) *(Link einfügen)*
-2. [Pandas merge with fallback strategy](https://stackoverflow.com/questions/...) *(Link einfügen)*
-3. [Seaborn heatmap annotations with formatting](https://stackoverflow.com/questions/...) *(Link einfügen)*
+1. [scrapy CONCURRENT_REQUESTS ignored when DOWNLOAD_DELAY set?](https://stackoverflow.com/questions/37461327)
+2. [Pandas Merging 101](https://stackoverflow.com/questions/53645882)
+3. [Custom Annotation Seaborn Heatmap](https://stackoverflow.com/questions/33158075)
+4. [How to write text above the bars on a bar plot](https://stackoverflow.com/questions/40489821)
+5. [How to pass another entire column as argument to pandas fillna()](https://stackoverflow.com/questions/30239152)
+6. [Extract both href and link using css selectors in scrapy](https://stackoverflow.com/questions/67480652)
 
 ---
 
