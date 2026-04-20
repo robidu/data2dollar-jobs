@@ -2,11 +2,19 @@
 =============================================================================
 cleaning.py - Datenbereinigung Schweizer Jobmarkt 2026
 =============================================================================
-Projekt : From Data2Dollar | HSG FS 2026
-Beschreibung: Bereinigt rohdaten_jobs.csv und lohndaten_bfs.csv,
-              extrahiert Skills und Seniority, normalisiert Staedte,
-              merged beide Datensaetze.
-Output  : merged_dataset.csv
+Projekt      : From Data2Dollar | HSG FS 2026
+Autor        : Robin D.
+Beschreibung : Bereinigt rohdaten_jobs.csv und lohndaten_bfs.csv,
+               extrahiert Skills und Seniority, normalisiert Staedte,
+               merged beide Datensaetze.
+Output       : merged_dataset.csv
+
+-----------------------------------------------------------------------------
+KI-DEKLARATION (vgl. KI_DEKLARATION.md)
+-----------------------------------------------------------------------------
+# HUMAN          = Konzept, Mappings und Logik vom Autor
+# KI-ASSISTIERT  = iterativ mit Claude/Copilot entwickelt, Autor hat Review gemacht
+# VIBE-CODED     = primaer von KI, vom Autor verstanden und getestet
 =============================================================================
 """
 
@@ -17,6 +25,7 @@ import re
 # =============================================================================
 # 1. DATEN EINLESEN
 # =============================================================================
+# HUMAN: Einfacher Einlese-Schritt, standard Pandas-Pattern
 
 print("=" * 60)
 print("SCHRITT 1: Daten einlesen")
@@ -32,6 +41,9 @@ print(f"\nFehlende Werte (Jobs):\n{df_jobs.isnull().sum()}")
 # =============================================================================
 # 2. JOBS - GRUNDBEREINIGUNG
 # =============================================================================
+# HUMAN: Duplikat-Strategie und NaN-Fuellwerte selbst definiert.
+# Zuerst Duplikate per job_id (unique ID von jobs.ch), dann per title+company
+# als Sicherheitsnetz fuer den Fall dass dieselbe Stelle unter 2 IDs gepostet wurde.
 
 print("\n" + "=" * 60)
 print("SCHRITT 2: Grundbereinigung Jobs")
@@ -48,6 +60,7 @@ df_jobs["skills_text"]   = df_jobs["skills_text"].fillna("")
 df_jobs["contract_type"] = df_jobs["contract_type"].fillna("Nicht angegeben")
 df_jobs["date_posted"]   = df_jobs["date_posted"].fillna("")
 
+# KI-ASSISTIERT: Loop-Pattern zum trimmen aller Textspalten von Claude vorgeschlagen
 for col in df_jobs.columns:
     if df_jobs[col].dtype == object:
         df_jobs[col] = df_jobs[col].astype(str).str.strip().replace("nan", "")
@@ -57,6 +70,9 @@ print(f"Nach Bereinigung: {df_jobs.shape[0]} Zeilen")
 # =============================================================================
 # 3. GEHALTSANGABEN PARSEN - JAHRESGEHALT -> MONATSGEHALT
 # =============================================================================
+# HUMAN: Konzept selbst entwickelt - wenn der geparste Wert > 25'000 ist, muss
+# es ein Jahresgehalt sein (kein Monatslohn ist so hoch). Also durch 12 teilen.
+# Die Schwelle 25'000 ist meine eigene Plausibilitaetsannahme.
 
 print("\n" + "=" * 60)
 print("SCHRITT 3: Gehaltsangaben parsen")
@@ -67,29 +83,39 @@ def parse_gehalt(salary_str):
     Parst 'CHF 95375 - 135375 (jobs.ch estimate)' -> 9590 CHF/Monat.
     Jahresgehalt (>25000) wird automatisch durch 12 geteilt.
     """
+    # HUMAN: Input-Validierung
     if not isinstance(salary_str, str) or salary_str.strip() == "":
         return np.nan
+
+    # KI-ASSISTIERT: Regex-Pattern von Copilot. Findet alle Zahlen mit optionalem
+    # Apostroph-Tausendertrenner (CH-Format: 95'000). Filtert auf Zahlen >= 100
+    # damit keine Prozente oder 13. Monatslohn mitgeparst werden.
     zahlen = re.findall(r"[\d']+", salary_str)
     zahlen = [int(z.replace("'", "")) for z in zahlen if len(z.replace("'", "")) >= 3]
+
+    # HUMAN: Mittelwert-Logik bei Range, sonst Einzelwert
     if len(zahlen) >= 2:
         mittelwert = np.mean(zahlen[:2])
     elif len(zahlen) == 1:
         mittelwert = float(zahlen[0])
     else:
         return np.nan
-    # Jahresgehalt erkennen und auf Monat umrechnen
+
+    # HUMAN: Plausibilitaets-Schwelle 25'000 ist meine eigene Annahme
     if mittelwert > 25000:
         return round(mittelwert / 12, 0)
     return mittelwert
 
 df_jobs["gehalt_monat_chf"] = df_jobs["salary_range"].apply(parse_gehalt)
 
-# Plausibilitaet: 3000 - 25000 CHF/Monat
+# HUMAN: Zweite Plausibilitaetspruefung (Monatslohn zwischen 3'000 und 25'000)
 maske = (
     df_jobs["gehalt_monat_chf"].notna() &
     ((df_jobs["gehalt_monat_chf"] < 3000) | (df_jobs["gehalt_monat_chf"] > 25000))
 )
 df_jobs.loc[maske, "gehalt_monat_chf"] = np.nan
+
+# HUMAN: Jahresgehalt mit 13 Monatsloehnen (CH-Standard), nicht 12
 df_jobs["gehalt_jahr_chf"] = df_jobs["gehalt_monat_chf"] * 13
 
 n_gehalt = df_jobs["gehalt_monat_chf"].notna().sum()
@@ -101,6 +127,11 @@ if n_gehalt > 0:
 # =============================================================================
 # 4. SENIORITY AUS JOBTITEL EXTRAHIEREN
 # =============================================================================
+# HUMAN: Keyword-Listen komplett selbst zusammengestellt.
+# 4 Stufen gewaehlt (Junior, Mid, Senior, Lead/Manager) weil das die
+# Standard-Karrierestufen in der Schweiz sind.
+# Reihenfolge der Abfrage wichtig: Lead/Manager ueberschreibt Senior
+# (ein "Senior Manager" zaehlt als Lead, nicht als Senior).
 
 print("\n" + "=" * 60)
 print("SCHRITT 4: Seniority extrahieren")
@@ -110,17 +141,21 @@ def extrahiere_seniority(titel):
     if not isinstance(titel, str):
         return "Mid"
     t = titel.lower()
+    # HUMAN: Lead/Manager-Keywords - deutsch, englisch und franzoesisch fuer CH-Markt
     if any(w in t for w in ["head of", "lead", "chief", "cto", "cfo", "cio",
                              "vp ", "vice president", "direktor", "director",
                              "manager", "leiter", "leiterin", "responsable"]):
         return "Lead/Manager"
+    # HUMAN: Senior-Keywords
     if any(w in t for w in ["senior", "sr.", "sr ", "principal",
                              "expert", "spezialist", "experienced"]):
         return "Senior"
+    # HUMAN: Junior-Keywords inkl. Praktikum und Trainee
     if any(w in t for w in ["junior", "jr.", "jr ", "trainee", "praktikum",
                              "werkstudent", "einstieg", "entry", "graduate",
                              "intern", "stagiaire", "apprentice"]):
         return "Junior"
+    # HUMAN: Default = Mid (haeufigste Stufe in den Daten)
     return "Mid"
 
 df_jobs["seniority"] = df_jobs["job_title"].apply(extrahiere_seniority)
@@ -130,11 +165,16 @@ print(df_jobs["seniority"].value_counts())
 # =============================================================================
 # 5. SKILLS AUS skills_text EXTRAHIEREN
 # =============================================================================
+# HUMAN: Die Skill-Liste ist 100% Eigenleistung - basiert auf meiner Recherche
+# zu den relevantesten Skills fuer die 8 gewaehlten Branchen im CH-Markt 2026.
+# Strukturiert nach: Programmiersprachen, BI/Analytics, Cloud, ML/AI, DB, 
+# Projektmanagement, Sprachen, Branchenspezifisch.
 
 print("\n" + "=" * 60)
 print("SCHRITT 5: Skills extrahieren")
 print("=" * 60)
 
+# HUMAN: Komplette Skill-Liste vom Autor zusammengestellt
 SKILL_LISTE = [
     "Python", "SQL", "Java", "Scala", "R", "C++", "C#",
     "JavaScript", "TypeScript", "Go", "MATLAB",
@@ -149,6 +189,7 @@ SKILL_LISTE = [
     "CAD", "AutoCAD", "SolidWorks", "GMP", "ISO", "Lean", "Six Sigma",
 ]
 
+# HUMAN: Normalisierungs-Mapping fuer Schreibvarianten
 SKILL_NORMALISIERUNG = {
     "power bi":        "Power BI",
     "powerbi":         "Power BI",
@@ -162,6 +203,8 @@ def extrahiere_skills(text):
         return []
     text_lower = text.lower()
     gefundene = []
+    # KI-ASSISTIERT: re.escape() damit Sonderzeichen wie C++ korrekt geescaped werden.
+    # Idee von Claude, weil mein erster Versuch ohne escape bei "C++" gescheitert ist.
     for skill in SKILL_LISTE:
         muster = r"\b" + re.escape(skill.lower()) + r"\b"
         if re.search(muster, text_lower):
@@ -173,6 +216,7 @@ def extrahiere_skills(text):
 df_jobs["skills_liste"]  = df_jobs["skills_text"].apply(extrahiere_skills)
 df_jobs["skills_anzahl"] = df_jobs["skills_liste"].apply(len)
 
+# HUMAN: Top-Skills fuer Konsolen-Output (hilft beim Debugging und Plausibilitaetscheck)
 alle_skills = [s for liste in df_jobs["skills_liste"] for s in liste]
 print(f"Durchschnittliche Skills pro Inserat: {df_jobs['skills_anzahl'].mean():.1f}")
 print(f"\nTop 10 Skills:\n{pd.Series(alle_skills).value_counts().head(10)}")
@@ -180,11 +224,16 @@ print(f"\nTop 10 Skills:\n{pd.Series(alle_skills).value_counts().head(10)}")
 # =============================================================================
 # 6. STADTNAME NORMALISIEREN
 # =============================================================================
+# HUMAN: Komplettes Mapping von Gemeinden und PLZ zu Hauptstaedten selbst erstellt.
+# Hintergrund: jobs.ch Angaben sind inkonsistent ("Zuerich", "8001 Zuerich",
+# "Wallisellen", "ZH"). Fuer die Analyse wollte ich Agglomerationen zusammenfassen
+# (Wallisellen und Schlieren sind effektiv Zuerich-Jobs).
 
 print("\n" + "=" * 60)
 print("SCHRITT 6: Stadtname normalisieren")
 print("=" * 60)
 
+# HUMAN: Mapping komplett vom Autor - basierend auf CH-Geografie und Pendler-Regionen
 STADT_MAPPING = {
     # Zuerich
     "zürich": "Zuerich", "zurich": "Zuerich", "zuerich": "Zuerich",
@@ -205,56 +254,41 @@ STADT_MAPPING = {
     # Bern
     "bern": "Bern", "berne": "Bern",
     "koeniz": "Bern", "ostermundigen": "Bern", "zollikofen": "Bern",
-    "3000": "Bern", "3001": "Bern", "3010": "Bern",
-    "3011": "Bern", "3012": "Bern", "3013": "Bern",
+    "3000": "Bern", "3001": "Bern", "3003": "Bern",
+    "3005": "Bern", "3006": "Bern", "3008": "Bern",
     # Genf
-    "genf": "Genf", "geneva": "Genf", "geneve": "Genf",
-    "genève": "Genf", "carouge": "Genf", "plan-les-ouates": "Genf",
-    "lancy": "Genf", "meyrin": "Genf", "vernier": "Genf",
-    "1201": "Genf", "1202": "Genf", "1203": "Genf", "1204": "Genf",
-    "1205": "Genf", "1206": "Genf", "1207": "Genf", "1208": "Genf",
-    "1209": "Genf", "1210": "Genf", "1211": "Genf", "1212": "Genf",
-    "1213": "Genf", "1214": "Genf", "1215": "Genf", "1216": "Genf",
-    "1217": "Genf", "1218": "Genf", "1219": "Genf", "1220": "Genf",
-    "1222": "Genf", "1223": "Genf", "1224": "Genf", "1225": "Genf",
-    "1226": "Genf", "1227": "Genf", "1228": "Genf",
+    "genf": "Genf", "geneva": "Genf", "genève": "Genf", "geneve": "Genf",
+    "meyrin": "Genf", "vernier": "Genf", "carouge": "Genf",
+    "1200": "Genf", "1201": "Genf", "1202": "Genf",
+    "1203": "Genf", "1204": "Genf", "1205": "Genf", "1206": "Genf",
     # Lausanne
-    "lausanne": "Lausanne", "renens": "Lausanne",
-    "ecublens": "Lausanne", "crissier": "Lausanne",
-    "1000": "Lausanne", "1001": "Lausanne", "1002": "Lausanne",
-    "1003": "Lausanne", "1004": "Lausanne", "1005": "Lausanne",
-    "1006": "Lausanne", "1007": "Lausanne", "1010": "Lausanne",
-    "1012": "Lausanne", "1015": "Lausanne", "1018": "Lausanne",
+    "lausanne": "Lausanne", "renens": "Lausanne", "ecublens": "Lausanne",
+    "1000": "Lausanne", "1003": "Lausanne", "1004": "Lausanne",
+    "1005": "Lausanne", "1006": "Lausanne", "1007": "Lausanne",
     # Zug
-    "zug": "Zug", "baar": "Zug", "steinhausen": "Zug",
-    "6300": "Zug", "6301": "Zug", "6302": "Zug", "6340": "Zug",
+    "zug": "Zug", "baar": "Zug", "cham": "Zug", "steinhausen": "Zug",
+    "6300": "Zug", "6301": "Zug", "6302": "Zug", "6303": "Zug", "6304": "Zug",
     # Luzern
-    "luzern": "Luzern", "lucerne": "Luzern",
-    "6000": "Luzern", "6002": "Luzern", "6003": "Luzern",
-    "6004": "Luzern", "6005": "Luzern", "6006": "Luzern",
+    "luzern": "Luzern", "lucerne": "Luzern", "emmen": "Luzern", "kriens": "Luzern",
+    "6000": "Luzern", "6003": "Luzern", "6004": "Luzern", "6005": "Luzern",
     # St. Gallen
-    "st. gallen": "St. Gallen", "st gallen": "St. Gallen",
-    "9000": "St. Gallen", "9001": "St. Gallen",
+    "st. gallen": "St. Gallen", "st.gallen": "St. Gallen", "sankt gallen": "St. Gallen",
+    "9000": "St. Gallen", "9001": "St. Gallen", "9004": "St. Gallen", "9006": "St. Gallen",
     # Lugano
     "lugano": "Lugano",
     "6900": "Lugano", "6901": "Lugano", "6902": "Lugano",
-    # Weitere Staedte
-    "aarau": "Aarau",
-    "solothurn": "Solothurn",
+    # Weitere
+    "neuchatel": "Neuchatel", "neuchâtel": "Neuchatel",
     "fribourg": "Fribourg", "freiburg": "Fribourg",
-    "neuchâtel": "Neuchatel", "neuchatel": "Neuchatel",
     "sion": "Sion", "sierre": "Sierre",
-    "martigny": "Martigny", "1920": "Martigny", "1921": "Martigny",
-    "visp": "Visp",
-    "thun": "Thun",
     "biel": "Biel", "bienne": "Biel",
-    "schaffhausen": "Schaffhausen",
-    "chur": "Chur",
-    "1026": "Lausanne",   # Denges -> Lausanne Region
-    "1028": "Lausanne",   # Preverenges
-    "1030": "Lausanne",   # Bussigny
+    "schaffhausen": "Schaffhausen", "chur": "Chur", "aarau": "Aarau",
+    "solothurn": "Solothurn", "thun": "Thun",
+    "visp": "Visp", "martigny": "Martigny",
 }
 
+# HUMAN: Zuordnung Stadt -> BFS-Grossregion (7 Regionen + "Andere")
+# Basis: offizielle BFS NUTS-2 Regionenklassifikation
 STADT_ZU_REGION = {
     "Zuerich":      "Zürich",
     "Basel":        "Nordwestschweiz",
@@ -280,20 +314,25 @@ STADT_ZU_REGION = {
 }
 
 def normalisiere_stadt(location_str):
+    """HUMAN: Drei-Stufen-Matching: 1. PLZ, 2. Text-Match, 3. Fallback."""
     if not isinstance(location_str, str) or location_str.strip() == "":
         return "Andere"
     loc = location_str.lower().strip()
-    # PLZ am Anfang (z.B. "1920 Martigny")
+
+    # HUMAN: Stufe 1 - PLZ am String-Anfang
     plz_match = re.match(r"^(\d{4})", loc)
     if plz_match:
         plz = plz_match.group(1)
         if plz in STADT_MAPPING:
             return STADT_MAPPING[plz]
-    # Text-Matching (laengste Keys zuerst)
+
+    # KI-ASSISTIERT: Laengste Keys zuerst sortieren - wichtig damit "st. gallen"
+    # vor "gallen" gematcht wird. Trick von Claude empfohlen.
     for key in sorted(STADT_MAPPING.keys(), key=len, reverse=True):
         if key in loc:
             return STADT_MAPPING[key]
-    # Fallback: ersten Textteil nehmen
+
+    # HUMAN: Fallback - ersten Teil vor Komma/Slash nehmen
     erster_teil = location_str.split(",")[0].split("/")[0].strip()
     return erster_teil if erster_teil else "Andere"
 
@@ -308,12 +347,17 @@ print(df_jobs["bfs_region"].value_counts())
 # =============================================================================
 # 7. BRANCHE -> BFS-WIRTSCHAFTSZWEIG (EXAKTE BFS-NAMEN)
 # =============================================================================
+# HUMAN: Dieses Mapping ist eine bewusste konzeptionelle Entscheidung des Autors.
+# jobs.ch arbeitet mit eigenen Kategorie-IDs, BFS mit NOGA-Klassifikation.
+# Ich habe manuell die beste Entsprechung pro Branche gewaehlt.
+# Bewusste Vereinfachungen: "Real Estate" und "Banking" beide auf
+# "Finanz- u. Versicherungsdienstleistungen" weil BFS sie nicht separat ausweist.
 
 print("\n" + "=" * 60)
 print("SCHRITT 7: Branche -> BFS-Wirtschaftszweig")
 print("=" * 60)
 
-# WICHTIG: Exakte Bezeichnungen aus lohndaten_bfs.csv verwenden
+# HUMAN: Mapping komplett vom Autor - exakte BFS-Bezeichnungen verwendet
 BRANCHE_MAPPING = {
     "IT/Telecom":
         "Informationstechnologie u. Informationsdienstl.",
@@ -340,6 +384,7 @@ print(df_jobs.groupby("category")["wirtschaftszweig_bfs"].first().to_string())
 # =============================================================================
 # 8. BFS-DATENSATZ BEREINIGEN
 # =============================================================================
+# HUMAN: Standard Pandas-Bereinigung
 
 print("\n" + "=" * 60)
 print("SCHRITT 8: BFS-Datensatz bereinigen")
@@ -353,7 +398,8 @@ for col in df_bfs.columns:
     if df_bfs[col].dtype == object:
         df_bfs[col] = df_bfs[col].astype(str).str.strip()
 
-# Aggregieren: Medianlohn pro Region + Wirtschaftszweig
+# KI-ASSISTIERT: groupby-Aggregation mit Rename - Standard Pandas-Pattern,
+# aber von Claude strukturiert empfohlen
 df_bfs_agg = (
     df_bfs
     .groupby(["region", "wirtschaftszweig"], as_index=False)["medianlohn_chf"]
@@ -365,7 +411,8 @@ df_bfs_agg = (
     })
 )
 
-# Fallback: Schweiz-Gesamt pro Wirtschaftszweig
+# HUMAN: Fallback-Idee selbst: Wenn Region+Branche keinen Match gibt, 
+# nimm Schweiz-Gesamtmedian pro Branche. Wichtig damit kein Job unmapped bleibt.
 df_bfs_fallback = (
     df_bfs[df_bfs["region"] == "Schweiz"]
     .rename(columns={
@@ -377,7 +424,7 @@ df_bfs_fallback = (
 print(f"BFS aggregiert (Region+Branche): {df_bfs_agg.shape[0]} Eintraege")
 print(f"BFS Fallback (Schweiz-Gesamt)  : {df_bfs_fallback.shape[0]} Eintraege")
 
-# Verfuegbare Wirtschaftszweige in BFS ausgeben (zum Debuggen)
+# HUMAN: Debug-Output aller verfuegbaren Wirtschaftszweige (geholfen beim Mapping erstellen)
 print("\nBFS Wirtschaftszweige verfuegbar:")
 for w in sorted(df_bfs["wirtschaftszweig"].unique()):
     print(f"  {w}")
@@ -385,19 +432,22 @@ for w in sorted(df_bfs["wirtschaftszweig"].unique()):
 # =============================================================================
 # 9. MERGE: JOBS + BFS (ZWEISTUFIG)
 # =============================================================================
+# HUMAN: Der zweistufige Merge ist eine konzeptionelle Entscheidung des Autors.
+# Ziel: 100% BFS-Match-Rate. Stufe 1 matched exakt (Region+Branche), Stufe 2
+# faengt alles andere ueber Schweiz-Gesamtwerte pro Branche auf.
 
 print("\n" + "=" * 60)
 print("SCHRITT 9: Merge Jobs + BFS")
 print("=" * 60)
 
-# Stufe 1: Praeziser Merge mit Region + Branche
+# HUMAN: Stufe 1 - Praeziser Match
 df_merged = df_jobs.merge(
     df_bfs_agg,
     on=["bfs_region", "wirtschaftszweig_bfs"],
     how="left",
 )
 
-# Stufe 2: Fallback auf Schweiz-Gesamt fuer nicht gematchte Zeilen
+# HUMAN: Stufe 2 - Fallback ueber Schweiz-Gesamt
 df_merged = df_merged.merge(
     df_bfs_fallback,
     on="wirtschaftszweig_bfs",
@@ -408,7 +458,9 @@ df_merged["bfs_medianlohn_chf"] = df_merged["bfs_medianlohn_chf"].fillna(
 )
 df_merged = df_merged.drop(columns=["bfs_medianlohn_fallback"])
 
-# Diskrepanz berechnen (nur wo beide Werte vorhanden)
+# HUMAN: Diskrepanz-Metriken - Kern-Insight fuer die finale Heatmap.
+# Positive Werte = Inserat zahlt mehr als BFS-Median (= Positiv-Selektion)
+# Negative Werte = Inserat zahlt weniger (= Benchmark-Unterschreitung)
 df_merged["lohn_diskrepanz_chf"] = (
     df_merged["gehalt_monat_chf"] - df_merged["bfs_medianlohn_chf"]
 ).round(0)
@@ -423,15 +475,20 @@ print(f"Diskrepanz-Daten   : {df_merged['lohn_diskrepanz_chf'].notna().sum()}")
 # =============================================================================
 # 10. FINALER DATENSATZ SPEICHERN
 # =============================================================================
+# HUMAN: Spalten-Reihenfolge und Auswahl bewusst gewaehlt fuer bessere
+# Lesbarkeit im finalen CSV (erst Identifikation, dann Kategorisierung,
+# dann Kernmetriken, dann Rohdaten).
 
 print("\n" + "=" * 60)
 print("SCHRITT 10: merged_dataset.csv speichern")
 print("=" * 60)
 
+# KI-ASSISTIERT: Liste-zu-String-Serialisierung fuer CSV - kleine technische Hilfe
 df_merged["skills_liste"] = df_merged["skills_liste"].apply(
     lambda x: " | ".join(x) if isinstance(x, list) else ""
 )
 
+# HUMAN: Spalten-Reihenfolge selbst bestimmt
 spalten_final = [
     "job_id", "job_title", "company", "location",
     "stadt_normalisiert", "bfs_region",

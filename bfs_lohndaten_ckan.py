@@ -2,13 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
+=============================================================================
 bfs_lohndaten_ckan.py - BFS Lohnstrukturerhebung via CKAN API
+=============================================================================
+Projekt      : From Data2Dollar | HSG FS 2026
+Autor        : Robin D.
+Ziel         : Medianloehne nach Grossregion und Wirtschaftszweig
+               von opendata.swiss abrufen und als CSV speichern.
+Output       : lohndaten_bfs.csv
 
-Projekt: Swiss Job Market 2026 (HSG, From Data2Dollar)
-Ziel: Medianlohn nach Grossregion und Wirtschaftszweig.
+-----------------------------------------------------------------------------
+KI-DEKLARATION (vgl. KI_DEKLARATION.md)
+-----------------------------------------------------------------------------
+# HUMAN          = Konzeptionelle Entscheidungen (Queries, Scoring)
+# KI-ASSISTIERT  = iterativ mit Claude/Copilot entwickelt
+# VIBE-CODED     = primaer von KI, vom Autor verstanden (Excel-Parser)
 
 Datensatz: T1-GR - Monatlicher Bruttolohn nach Wirtschaftszweigen
-und Grossregionen (Privater und öffentlicher Sektor zusammen)
+und Grossregionen (Privater und oeffentlicher Sektor zusammen)
 
 Excel-Struktur (bekannt):
 - Zeilen 0-2: Metadaten
@@ -19,8 +30,7 @@ Excel-Struktur (bekannt):
 
 Ausführen:
     python3 bfs_lohndaten_ckan.py
-
-Output: lohndaten_bfs.csv
+=============================================================================
 """
 
 import io
@@ -30,17 +40,21 @@ import sys
 import pandas as pd
 import requests
 
+# HUMAN: Konfiguration - CKAN-Endpoint und Query-Strategie vom Autor
 CKAN_SEARCH_URL = "https://ckan.opendata.swiss/api/3/action/package_search"
 OUTPUT_FILE = "lohndaten_bfs.csv"
 TIMEOUT = 60
 
+# HUMAN: Drei Queries in DE und FR um robusten Match zu erzielen. Die CKAN-API
+# sucht nur mit dem angegebenen Text, also lohnt es sich mehrere Varianten zu
+# probieren - manche BFS-Datensaetze sind nur auf Franzoesisch indexiert.
 SEARCH_QUERIES = [
     'monatlicher Bruttolohn Grossregion',
     'Lohnstrukturerhebung Grossregion Wirtschaftszweig',
     'salaire mensuel brut grande région',
 ]
 
-# Grossregionen in der richtigen Reihenfolge (aus Excel-Struktur bekannt)
+# HUMAN: BFS-Grossregionen in Standard-Reihenfolge wie im BFS Excel
 REGION_NAMES = [
     "Schweiz",
     "Genferseeregion",
@@ -54,6 +68,11 @@ REGION_NAMES = [
 
 
 def flatten_lang(value) -> str:
+    """
+    KI-ASSISTIERT: Helper zum Abflachen von CKAN's Multi-Language-Dicts.
+    CKAN gibt manchmal {"de": "...", "fr": "...", "en": "..."} zurueck.
+    Nimm die erste verfuegbare Sprache in Reihenfolge DE > EN > FR > IT.
+    """
     if isinstance(value, dict):
         for lang in ["de", "en", "fr", "it"]:
             v = value.get(lang)
@@ -64,10 +83,11 @@ def flatten_lang(value) -> str:
 
 
 def search_and_download() -> pd.DataFrame:
-    """Sucht Datensatz und lädt Excel herunter."""
+    """Sucht Datensatz und laedt Excel herunter."""
     seen_ids = set()
     all_results = []
 
+    # HUMAN: Suche mit allen 3 Query-Varianten, Deduplizierung per Package-ID
     for query in SEARCH_QUERIES:
         print(f"[INFO] CKAN-Suche: {query}")
         try:
@@ -86,11 +106,18 @@ def search_and_download() -> pd.DataFrame:
                     seen_ids.add(pid)
                     all_results.append(pkg)
         except requests.RequestException as e:
+            # KI-ASSISTIERT: Fehlerbehandlung - bei Timeout einfach weiter machen
             print(f"[WARN] {e}")
 
     print(f"[INFO] Datensätze gefunden: {len(all_results)}")
 
-    # Besten Datensatz wählen
+    # HUMAN: Scoring-Funktion komplett vom Autor. Hintergrund: CKAN liefert
+    # mehrere treffende Datensaetze, aber nicht alle haben die gewuenschte
+    # Granularitaet (Region + Wirtschaftszweig). Scoring-Logik:
+    # +20 wenn "grossregion" in Titel/Beschreibung
+    # +10 wenn "wirtschaftszweig" oder "branche"
+    # +10 wenn "bruttolohn"
+    # -20 wenn "betriebe" (das waere ein Betriebsdatensatz, nicht Loehne)
     def score(pkg):
         text = (flatten_lang(pkg.get("title", "")) + " " +
                 flatten_lang(pkg.get("notes", ""))).lower()
@@ -107,6 +134,7 @@ def search_and_download() -> pd.DataFrame:
 
     ranked = sorted(all_results, key=score, reverse=True)
 
+    # HUMAN: Top-5 Datensaetze durchprobieren bis einer passt
     for dataset in ranked[:5]:
         title = flatten_lang(dataset.get("title", ""))
         resources = dataset.get("resources", [])
@@ -127,6 +155,7 @@ def search_and_download() -> pd.DataFrame:
                 r = requests.get(url, timeout=TIMEOUT)
                 r.raise_for_status()
 
+                # KI-ASSISTIERT: CSV-Parsing mit Encoding/Separator-Fallback
                 if fmt == "csv":
                     for enc in ["utf-8", "latin-1"]:
                         for sep in [";", ","]:
@@ -141,7 +170,9 @@ def search_and_download() -> pd.DataFrame:
                             except Exception:
                                 continue
                 else:
-                    # Excel: grössten Sheet nehmen
+                    # VIBE-CODED: Excel mit multiplen Sheets - nimm das groesste Sheet.
+                    # Idee war: Daten-Sheet ist immer das groesste. Alternative (nach
+                    # Name suchen) waere fragil weil BFS Sheet-Namen teils aendert.
                     sheets = pd.read_excel(
                         io.BytesIO(r.content),
                         sheet_name=None,
@@ -161,21 +192,25 @@ def search_and_download() -> pd.DataFrame:
     raise RuntimeError("Kein Datensatz heruntergeladen.")
 
 
+# VIBE-CODED: Diese gesamte Parser-Funktion wurde primaer von Claude generiert.
+# Hintergrund: Die BFS T1-GR Excel-Datei hat eine sehr spezifische Struktur:
+# - Zeilen 0-2: Metadaten (Titel, Quelle, etc.)
+# - Zeile 3: Erste Header-Zeile (Regionennamen, Teil 1 - z.B. " Genfersee-")
+# - Zeile 4: Zweite Header-Zeile (Regionennamen, Teil 2 - z.B. " region")
+# - Zeile 5: Leer
+# - Zeile 6+: Daten
+# Der Parser kombiniert Zeile 3+4 zu finalen Headers, skippt Aggregate
+# (SEKTOR, TOTAL), und normalisiert BFS-Wertformate (eckige Klammern fuer
+# Schaetzwerte, non-breaking spaces, Apostrophe als Tausendertrenner).
+# Vom Autor verstanden, getestet und angepasst (Plausibilitaetsschwellen sind vom Autor).
 def parse_bfs_excel(df: pd.DataFrame) -> pd.DataFrame:
-    """Verarbeitet das T1-GR Excel mit bekannter Struktur.
-
-    Struktur:
-    Zeile 3: ' T1_gr' | nan | nan | ' Schweiz' | ' Genfersee-' | ...
-    Zeile 4: ' Wirtschaftszweige' | nan | nan | nan | ' region' | ...
-    Zeile 6+: NOGA-Code | Bezeichnung | nan | Wert_CH | Wert_GS | ...
-    """
+    """Verarbeitet das T1-GR Excel mit bekannter Struktur."""
     print("[INFO] Verarbeite Excel-Struktur...")
 
-    # Zeilen 3+4 kombinieren für Spaltenheader
+    # VIBE-CODED: Zeilen 3+4 kombinieren zu finalen Column-Headers
     row3 = [str(v).strip() for v in df.iloc[3].tolist()]
     row4 = [str(v).strip() for v in df.iloc[4].tolist()]
 
-    # Kombinierte Spaltenbezeichnungen
     combined_headers = []
     for r3, r4 in zip(row3, row4):
         r3 = r3 if r3.lower() != "nan" else ""
@@ -185,12 +220,13 @@ def parse_bfs_excel(df: pd.DataFrame) -> pd.DataFrame:
 
     print(f"[INFO] Kombinierte Headers: {combined_headers}")
 
-    # Daten ab Zeile 6
+    # VIBE-CODED: Daten ab Zeile 6
     data = df.iloc[6:].copy()
     data.columns = range(len(data.columns))
     data = data.reset_index(drop=True)
 
-    # Spalten 0=NOGA-Code, 1=Wirtschaftszweig, 2=leer, 3=CH, 4=GS, 5=EM, 6=NW, 7=ZH, 8=OS, 9=ZS, 10=TI
+    # HUMAN: Spalten-Mapping selbst definiert - basierend auf manueller Analyse
+    # der BFS-Excel in Excel-Vorschau
     col_wirtschaft = 1
     col_regionen = {
         "Schweiz": 3,
@@ -207,7 +243,8 @@ def parse_bfs_excel(df: pd.DataFrame) -> pd.DataFrame:
     for _, row in data.iterrows():
         wirtschaft = str(row[col_wirtschaft]).strip()
 
-        # Leere Zeilen und Aggregate überspringen
+        # HUMAN: Filter - leere Zeilen, Aggregate (SEKTOR, TOTAL) und
+        # zu kurze Eintraege ueberspringen
         if not wirtschaft or wirtschaft.lower() in ("nan", "", "none"):
             continue
         if wirtschaft.upper().startswith("SEKTOR") or wirtschaft.upper().startswith("TOTAL"):
@@ -221,18 +258,22 @@ def parse_bfs_excel(df: pd.DataFrame) -> pd.DataFrame:
 
             raw_val = str(row[col_idx]).strip()
 
-            # BFS verwendet eckige Klammern für Schätzwerte: [6 522]
+            # VIBE-CODED: BFS-spezifische Value-Normalisierung:
+            # - Eckige Klammern fuer Schaetzwerte entfernen: [6 522] -> 6522
+            # - Non-breaking spaces und normale Spaces entfernen
+            # - CH-Apostrophe entfernen
             raw_val = re.sub(r"[\[\]]", "", raw_val)
-            # Non-breaking spaces und normale Spaces entfernen
             raw_val = raw_val.replace("\xa0", "").replace(" ", "").replace("'", "")
 
-            # Nicht verfügbare Werte überspringen
+            # HUMAN: Not-Available-Marker die BFS verwendet: "-", "*", "..."
             if raw_val in ("-", "*", "...", "", "nan", "none"):
                 continue
 
             try:
                 lohn = float(raw_val.replace(",", "."))
-                if 1000 < lohn < 30000:  # Plausibilitätsprüfung CHF/Monat
+                # HUMAN: Plausibilitaetsschwelle 1000-30000 CHF/Monat
+                # vom Autor definiert (gleiche Logik wie in cleaning.py)
+                if 1000 < lohn < 30000:
                     records.append({
                         "region": region_name,
                         "wirtschaftszweig": wirtschaft,
@@ -247,6 +288,7 @@ def parse_bfs_excel(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
+    """HUMAN: Orchestrierung - Download, Parse, Speichern, Zusammenfassung."""
     try:
         raw_df = search_and_download()
 
@@ -275,6 +317,7 @@ def main():
         print(clean_df.head(15).to_string())
 
     except Exception as e:
+        # KI-ASSISTIERT: Traceback-Print fuer besseres Debugging
         print(f"\n❌ Fehler: {e}")
         import traceback
         traceback.print_exc()
