@@ -8,7 +8,7 @@
 
 ## 1. Projektbeschreibung
 
-Analyse des Schweizer Jobmarkts 2026 anhand von ~1'800 realen Stelleninseraten (jobs.ch)
+Analyse des Schweizer Jobmarkts 2026 anhand von 1'762 realen Stelleninseraten (jobs.ch)
 kombiniert mit offiziellen Lohndaten des Bundesamts für Statistik (BFS).
 
 ### Forschungsfragen
@@ -28,7 +28,7 @@ kombiniert mit offiziellen Lohndaten des Bundesamts für Statistik (BFS).
 
 | Quelle | Methode | Umfang |
 |---|---|---|
-| **jobs.ch** | Web Scraping via Scrapy | ~1'800 Stelleninserate, 18 Branchen × 100 Jobs |
+| **jobs.ch** | Web Scraping via Scrapy | 1'800 Stelleninserate gescrapt, 1'762 nach Duplikat-Bereinigung, 18 Branchen × 100 Jobs |
 | **BFS Lohnstrukturerhebung 2024** | CKAN API (opendata.swiss) | 368 Zeilen, 8 Grossregionen × 48 Wirtschaftszweige |
 
 ### Gescrapte Branchen (18)
@@ -57,7 +57,7 @@ pip install -r requirements.txt
 
 ### Pipeline-Reihenfolge
 ```bash
-# Schritt 1: Rohdaten von jobs.ch scrapen (~90 Min. wegen Rate-Limiting)
+# Schritt 1: Rohdaten von jobs.ch scrapen (~2h wegen Rate-Limiting, 0 Fehler)
 python3 jobs_ch_scraper.py
 
 # Schritt 2: BFS-Lohndaten via CKAN API laden (~1 Min.)
@@ -85,18 +85,19 @@ python3 visualisierungen.py
 ### Daten
 | Datei | Zweck |
 |---|---|
-| `rohdaten_jobs.csv` | Rohe Scraping-Ausgabe (~1'800 Jobs) |
+| `rohdaten_jobs.csv` | Rohe Scraping-Ausgabe (1'800 Jobs) |
 | `lohndaten_bfs.csv` | BFS Medianlöhne (368 Zeilen) |
-| `merged_dataset.csv` | Finaler bereinigter Datensatz |
+| `merged_dataset.csv` | Finaler bereinigter Datensatz (1'762 Zeilen) |
+| `merged_dataset_mit_gehalt.csv` | Subset mit Gehaltsangaben (652 Zeilen) |
 
 ### Visualisierungen
 | Datei | Zweck |
 |---|---|
 | `01_top15_skills.png` | Top 15 gefragte Skills |
-| `02_gehalt_nach_stadt.png` | Gehaltsvergleich nach Schweizer Städten |
-| `03_seniority_gehalt.png` | Seniority-Stufe vs. Monatsgehalt |
+| `02_gehalt_nach_stadt.png` | Gehaltsvergleich nach Schweizer Städten (min n=15 pro Stadt) |
+| `03_seniority_gehalt.png` | Seniority-Stufe vs. Monatsgehalt (Hochlohn-Branchen, min n=10) |
 | `04_arbeitsmodell_branche.png` | Anteil Remote / Hybrid / On-site pro Branche |
-| `05_lohn_diskrepanz_heatmap.png` | Lohn-Lücke Inserate vs. BFS nach Branche und Region |
+| `05_lohn_diskrepanz_heatmap.png` | Lohn-Lücke Inserate vs. BFS nach Branche und Region (min n=3 pro Zelle) |
 
 ### Dokumentation
 | Datei | Zweck |
@@ -112,7 +113,7 @@ python3 visualisierungen.py
 | Version | Branchen | Jobs | Filter-Typ | Datum |
 |---|---|---|---|---|
 | v1 | 8 (Berufsfeld) | 320 | `?category=X` | April 2026 |
-| v2 | 18 (Branche) | ~1'800 | `?industry=X` | April 2026 |
+| v2 | 18 (Branche) | 1'762 | `?industry=X` | April 2026 |
 
 **Warum v2?** Feedback Coaching Call: Datensatz zu klein (min. 1'000 Jobs). Ausserdem matcht der `industry`-Filter von jobs.ch direkt mit den BFS-Wirtschaftszweigen, was den Merge sauberer macht als der alte `category`-Filter.
 
@@ -120,19 +121,26 @@ python3 visualisierungen.py
 
 ## 6. Key Findings
 
-1. **Python, SQL und Englisch** sind die meistgefragten Skills (zusammen in über 40% der Inserate).
-2. **Zürich führt bei Inserats-Gehältern** deutlich vor Genf und Basel. BFS-Medianlöhne liegen in Zürich ebenfalls an der Spitze, die Lücke ist jedoch kleiner als erwartet.
-3. **Seniority zahlt sich aus**: Der Sprung vom Mid- zum Senior-Level bringt im Median einen deutlich höheren Gehaltssprung als der Sprung vom Junior- zum Mid-Level.
-4. **IT/Telecom bietet am meisten Flexibilität**: Höchster Anteil an Hybrid- und Remote-Stellen. Bau- und Ingenieurbranchen bleiben stark On-site.
-5. **Inserats-Gehälter liegen systematisch über BFS-Medianlöhnen**, besonders im Consulting- und IT-Sektor. Dies deutet auf eine Positiv-Selektion hin (Arbeitgeber mit höheren Löhnen inserieren eher transparent).
+1. **Sprachkenntnisse dominieren die Skill-Anforderungen**: Deutsch wird in 450 der 1'762 Inserate verlangt (26%), Englisch in 213 (12%), Französisch in 129 (7%). Unter den Tech-Skills führt SAP (129) vor Excel (99) und R (86).
+
+2. **Zürich führt bei Inserats-Gehältern** mit CHF 8'098/Monat (n=102), gefolgt von Genf (CHF 7'673, n=27) und Bern (CHF 7'527, n=66). In Basel, Luzern und Lausanne liegen die Inserats-Gehälter **unter** dem BFS-Medianlohn der jeweiligen Region.
+
+3. **Seniority zahlt sich aus** (in Hochlohn-Branchen): Mid CHF 7'083 (n=145) → Senior CHF 7'958 (n=20, +12%) → Lead/Manager CHF 8'167 (n=45, +15% gegenüber Mid). Der grösste Gehaltssprung erfolgt bei der Beförderung zum Senior-Level.
+
+4. **Beratung und Banken bieten am meisten Flexibilität**: Beratung diverse (36% Hybrid) und Banken / Finanzinstitute (33% Hybrid) führen. IT / Telekommunikation folgt mit 26% Hybrid und zusätzlich 4% Remote. Detail / Grosshandel, Gewerbe / Handwerk und Gastgewerbe bleiben zu über 95% On-site.
+
+5. **Umgekehrte Lohn-Logik**: Hochlohn-Branchen inserieren systematisch **unter** dem BFS-Median (z.B. Chemie/Pharma Nordwestschweiz -43%, Banken Genferseeregion -25.5%, Versicherungen Mittelland -17.3%), während Tieflohn-Branchen oft **über** dem Median zahlen (Detail/Grosshandel Zürich +32.8%, Gesundheits/Sozialwesen Mittelland +63%, Gastgewerbe Mittelland +32.8%). Interpretation: jobs.ch zeigt in Hochlohn-Branchen eher Einstiegs-/Durchschnittspositionen, in Tieflohn-Branchen eher qualifizierte Fachstellen.
 
 ---
 
 ## 7. Limitationen
 
-- **Gehaltstransparenz nur bei ~42% der Inserate**. Die übrigen enthalten keine Gehaltsangabe → Analysen zu Gehalt basieren auf dieser Teilmenge.
+- **Gehaltstransparenz nur bei 37% der Inserate** (652 von 1'762). Die übrigen enthalten keine Gehaltsangabe, sodass alle Gehalts-Analysen auf dieser Teilmenge basieren.
 - **Jobs.ch Schätzungen**: Ein Teil der angegebenen Gehälter sind von jobs.ch berechnete Schätzungen, keine offiziellen Arbeitgeberangaben. Dies wird in Chart 2 transparent kommuniziert.
-- **Branchen-Mapping vereinfacht**: Die 18 jobs.ch-Branchen wurden auf BFS-Wirtschaftszweige gemappt, was stellenweise Vereinfachungen bedeutet.
+- **Ausbildungsgehälter gefiltert**: Inserate mit Keywords wie "Apprenti", "Lehrling", "Stagiaire" und "Praktikum" wurden aus der Gehalts-Analyse ausgeschlossen, um Verzerrungen zu vermeiden. Zusätzlich gilt ein Plausibilitätsfilter von CHF 3'500-20'000/Monat.
+- **Seniority-Heuristik**: Die Klassifikation basiert auf Keywords im Jobtitel. "Mid" ist die Default-Kategorie für Inserate ohne explizites Seniority-Keyword und enthält daher eine heterogene Mischung. Seniority-Analyse (Chart 3) beschränkt sich auf Hochlohn-Branchen, wo Seniority ein klarer Gehaltstreiber ist.
+- **Statistische Filter**: Chart 2 zeigt nur Städte mit n≥15, Chart 3 nur Stufen mit n≥10, Chart 5 nur Zellen mit n≥3. Dies führt zu leeren Zellen in der Heatmap, wo die Stichprobengrösse zu klein für belastbare Aussagen ist.
+- **Branchen-Mapping vereinfacht**: Die 18 jobs.ch-Branchen wurden auf BFS-Wirtschaftszweige gemappt, was stellenweise Vereinfachungen bedeutet (z.B. Industrie diverse und Gewerbe / Handwerk allgemein → beide "Verarbeitendes Gewerbe").
 - **Mehrsprachigkeit**: jobs.ch enthält Inserate auf Deutsch, Französisch und Englisch. Skill-Extraktion wurde für alle drei Sprachen optimiert.
 - **Snapshot**: Daten wurden im April 2026 erhoben und reflektieren eine Momentaufnahme.
 
@@ -146,6 +154,7 @@ KI wurde primär eingesetzt für:
 - Generierung von Boilerplate-Code (z.B. Grundstruktur des Scrapy-Spiders)
 - Komplexe Regex-Patterns (JSON-LD und React-State Extraktion)
 - Debugging von Pipeline-Problemen (z.B. Prioritäten-Konflikt bei Scrapy)
+- Statistische Qualitätssicherung (Mindest-Stichprobengrössen, Ausreisser-Filter)
 - Code-Review und Formatierung
 
 **Eine detaillierte Auflistung aller KI-unterstützten Stellen findet sich in `KI_DEKLARATION.md`.**
