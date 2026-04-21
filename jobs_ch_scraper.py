@@ -7,8 +7,14 @@ jobs_ch_scraper.py - Scrapy Spider für jobs.ch
 =============================================================================
 Projekt      : From Data2Dollar | HSG FS 2026
 Autor        : Robin D.
-Ziel         : 320 Stelleninserate aus 8 Branchen (40 pro Branche) scrapen
+Ziel         : ~1'800 Stelleninserate aus 18 Branchen (max. 100 pro Branche) scrapen
 Output       : rohdaten_jobs.csv
+
+VERSION 2: Erweitert nach Coaching-Call-Feedback (min. 1000 Jobs).
+- Alte Version: 8 Kategorien (Berufsfeld-Filter ?category=X) x 40 = 320 Jobs
+- Neue Version: 18 Branchen (Branche-Filter ?industry=X) x 100 = ~1800 Jobs
+- Wechsel auf industry-Filter weil er direkt mit BFS-Wirtschaftszweigen matcht
+- 6 von 24 Branchen ausgelassen (zu klein oder kein BFS-Match, siehe categories)
 
 -----------------------------------------------------------------------------
 KI-DEKLARATION (vgl. KI_DEKLARATION.md)
@@ -47,20 +53,48 @@ from twisted.internet.error import DNSLookupError, TimeoutError, TCPTimedOutErro
 class JobsChSpider(scrapy.Spider):
     name = "jobs_ch_spider"
 
-    # HUMAN: Auswahl der 8 Branchen komplett vom Autor.
-    # Auswahlkriterien: (1) Relevanz fuer Schweizer Wirtschaft,
-    # (2) Vielfalt (Finance, Tech, Industry, Services),
-    # (3) ausreichende Inserats-Zahl pro Kategorie.
-    # IDs entsprechen jobs.ch-interner Kategorisierung.
+    # HUMAN: Auswahl der 18 Branchen strategisch vom Autor getroffen.
+    # Auswahlkriterien:
+    # (1) Direkter Match mit BFS-Wirtschaftszweigen fuer sauberen Lohn-Merge
+    # (2) Mix aus Hochlohn/Mittellohn/Tieflohn fuer Kontrast in Visualisierungen
+    # (3) Relevanz fuer Personas Lena (IT) und Marcus (Banking->Tech)
+    # (4) Ausreichende Inseratszahl auf jobs.ch (von 24 Branchen 6 ausgelassen:
+    #     ID 7 Dienstleistungen allg. - zu generisch, kein klarer BFS-Match
+    #     ID 14 Land/Forst - zu wenig Jobs (~80)
+    #     ID 15 Medien/Druck - zu wenig Jobs (~139)
+    #     ID 17 Tourismus - zu klein, ueberlappt mit Gastgewerbe
+    #     ID 21 Konsum/Luxus - kein klarer BFS-Match
+    #     ID 24 Personalberatung - zu wenig Jobs (~70)
+    #
+    # WICHTIG: Verwendet ?industry=X (nicht ?category=X) - dieser Filter
+    # entspricht der "Branche" auf jobs.ch und matcht direkt mit BFS.
+    # IDs wurden manuell auf jobs.ch verifiziert (April 2026).
+    # Falls eine Branche < 100 verfuegbare Jobs hat (z.B. ID 3 Beratung ~140),
+    # werden nur die verfuegbaren gescrapt - kein Fehler.
     categories = {
-        "106": "IT/Telecom",
-        "101": "Finance/Trusts/Real Estate",
-        "102": "Banking/Insurance",
-        "104": "Marketing/Communications",
-        "124": "Consulting/Company Development",
-        "108": "Engineering/Watches",
-        "107": "Chemical/Pharma/Biotech",
-        "110": "Construction/Architecture",
+        # Hochlohn-Branchen (6)
+        "1":  "Banken / Finanzinstitute",         # ~944 offene Stellen
+        "5":  "Chemie / Pharma",                  # ~607
+        "13": "Informatik / Telekommunikation",   # ~1343 - Lena Core
+        "19": "Rechts- / Wirtschaftsberatung",    # ~750
+        "20": "Versicherungen",                   # ~1153
+        "23": "Medizinaltechnik",                 # ~789
+
+        # Mittellohn-Branchen (8)
+        "2":  "Baugewerbe / Immobilien",          # ~3419
+        "3":  "Beratung diverse",                 # ~140 - KMU Beratung
+        "4":  "Bildungswesen",                    # ~1141
+        "8":  "Energie / Wasserwirtschaft",       # ~5123
+        "11": "Gewerbe / Handwerk allgemein",     # ~717
+        "16": "Oeffentliche Verwaltung",          # ~2461
+        "18": "Transport / Logistik",             # ~993
+        "22": "Maschinen / Anlagenbau",           # ~1420
+
+        # Tieflohn-Branchen (4)
+        "6":  "Detail / Grosshandel",             # ~4976
+        "9":  "Gastgewerbe / Hotellerie",         # ~1241
+        "10": "Gesundheits / Sozialwesen",        # ~8651
+        "12": "Industrie diverse",                # ~2874
     }
 
     # HUMAN: Scrapy-Settings bewusst konservativ gewaehlt fuer respektvolles Scraping:
@@ -111,9 +145,10 @@ class JobsChSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # HUMAN: Limits selbst gesetzt - 40 pro Kategorie x 8 = 320 Total
-        self.max_jobs_per_category = 40
-        self.max_jobs_total = 320
+        # HUMAN: Limits fuer erweiterten Datensatz - 100 pro Branche x 18 = 1800 Total
+        # Falls eine Branche < 100 Jobs hat, werden nur verfuegbare gescrapt
+        self.max_jobs_per_category = 100
+        self.max_jobs_total = 1800
         # HUMAN: Counter fuer Fortschritts-Tracking und harte Abbruchbedingung
         self.scraped_jobs_total = 0
         self.scraped_jobs_per_category = {cat_id: 0 for cat_id in self.categories}
@@ -122,15 +157,17 @@ class JobsChSpider(scrapy.Spider):
 
     async def start(self):
         """
-        HUMAN: Eine Kategorie nach der anderen starten - sequentiell.
-        Alternative waere gleichzeitig alle 8 zu starten, aber das macht
+        HUMAN: Eine Branche nach der anderen starten - sequentiell.
+        Alternative waere gleichzeitig alle 15 zu starten, aber das macht
         Debugging und Fortschrittskontrolle schwieriger.
         """
-        base_url = "https://www.jobs.ch/en/vacancies/"
-        self.logger.info("Starte Spider | 8 Kategorien x 40 Jobs = ~320 Inserate")
+        base_url = "https://www.jobs.ch/de/stellenangebote/"
+        self.logger.info("Starte Spider | 18 Branchen x 100 Jobs = ~1800 Inserate")
 
         for cat_id, cat_name in self.categories.items():
-            url = f"{base_url}?{urlencode({'category': cat_id})}"
+            # HUMAN: URL-Parameter ?industry=X (Branche-Filter)
+            # NICHT ?category=X (Berufsfeld-Filter) - industry matcht mit BFS
+            url = f"{base_url}?{urlencode({'industry': cat_id, 'term': ''})}"
             yield scrapy.Request(
                 url=url,
                 callback=self.parse_search_results,
@@ -169,11 +206,13 @@ class JobsChSpider(scrapy.Spider):
             self.logger.info("'%s': Redirect auf Detail -> stoppe", cat_name)
             return
 
-        self.logger.info("Kategorie '%s' Seite %s", cat_name, page_number)
+        self.logger.info("Branche '%s' Seite %s", cat_name, page_number)
 
-        # HUMAN: CSS-Selektor fuer Detail-Links selbst ausprobiert in Chrome DevTools
+        # HUMAN: CSS-Selektor fuer Detail-Links selbst ausprobiert in Chrome DevTools.
+        # Generisch '/detail/' damit sowohl deutsche (/stellenangebote/detail/)
+        # als auch englische (/vacancies/detail/) URLs gefunden werden.
         detail_links = response.css(
-            'a[href*="/en/vacancies/detail/"]::attr(href)'
+            'a[href*="/detail/"]::attr(href)'
         ).getall()
 
         # HUMAN: Deduplizierung pro Listen-Seite (gleicher Job kann mehrfach verlinkt sein)
@@ -212,29 +251,30 @@ class JobsChSpider(scrapy.Spider):
                 dont_filter=True,
             )
 
-        # HUMAN: Pagination mit NIEDRIGER Prioritaet = laueft erst nach Details
+        # HUMAN: Pagination mit NIEDRIGER Prioritaet = laueft erst nach Details.
+        # WICHTIG: jobs.ch URL-Parameter-Reihenfolge muss ?industry=X&page=N&term= sein.
+        # Die Reihenfolge ?industry=X&term=&page=N wird von jobs.ch ignoriert (bestaetigter Bug).
+        # Darum konstruieren wir die URL direkt statt dem "Next"-Link zu folgen.
         already_scraped = self.scraped_jobs_per_category.get(cat_id, 0)
-        if already_scraped < self.max_jobs_per_category:
-            # KI-ASSISTIERT: Doppelte Pagination-Detection - erst CSS, dann XPath-Fallback
-            next_href = response.css('a[aria-label="Next"]::attr(href)').get()
-            if not next_href:
-                next_href = response.xpath(
-                    '//a[contains(normalize-space(.), "Next")]/@href'
-                ).get()
+        if already_scraped < self.max_jobs_per_category and page_number < 10:
+            # Max 10 Seiten pro Branche als Sicherheits-Limit
+            # (100 Jobs / 22 pro Seite = 5 Seiten, aber Puffer fuer Duplikate)
+            next_page = page_number + 1
+            base_url = "https://www.jobs.ch/de/stellenangebote/"
+            next_url = f"{base_url}?industry={cat_id}&page={next_page}&term="
 
-            if next_href and "/detail/" not in next_href:
-                yield response.follow(
-                    next_href,
-                    callback=self.parse_search_results,
-                    errback=self.handle_error,
-                    meta={
-                        "category_id": cat_id,
-                        "category_name": cat_name,
-                        "page_number": page_number + 1,
-                    },
-                    priority=0,
-                    dont_filter=True,
-                )
+            yield scrapy.Request(
+                url=next_url,
+                callback=self.parse_search_results,
+                errback=self.handle_error,
+                meta={
+                    "category_id": cat_id,
+                    "category_name": cat_name,
+                    "page_number": next_page,
+                },
+                priority=0,
+                dont_filter=True,
+            )
 
     def parse_job_detail(self, response: Response):
         """

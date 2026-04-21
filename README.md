@@ -8,7 +8,7 @@
 
 ## 1. Projektbeschreibung
 
-Analyse des Schweizer Jobmarkts 2026 anhand von 320 realen Stelleninseraten (jobs.ch)
+Analyse des Schweizer Jobmarkts 2026 anhand von ~1'800 realen Stelleninseraten (jobs.ch)
 kombiniert mit offiziellen Lohndaten des Bundesamts für Statistik (BFS).
 
 ### Forschungsfragen
@@ -28,8 +28,16 @@ kombiniert mit offiziellen Lohndaten des Bundesamts für Statistik (BFS).
 
 | Quelle | Methode | Umfang |
 |---|---|---|
-| **jobs.ch** | Web Scraping via Scrapy | 320 Stelleninserate, 8 Branchen × 40 Jobs |
+| **jobs.ch** | Web Scraping via Scrapy | ~1'800 Stelleninserate, 18 Branchen × 100 Jobs |
 | **BFS Lohnstrukturerhebung 2024** | CKAN API (opendata.swiss) | 368 Zeilen, 8 Grossregionen × 48 Wirtschaftszweige |
+
+### Gescrapte Branchen (18)
+
+| Lohnkategorie | Branchen |
+|---|---|
+| **Hochlohn** | Banken / Finanzinstitute, Chemie / Pharma, Informatik / Telekommunikation, Rechts- / Wirtschaftsberatung, Versicherungen, Medizinaltechnik |
+| **Mittellohn** | Baugewerbe / Immobilien, Beratung diverse, Bildungswesen, Energie / Wasserwirtschaft, Gewerbe / Handwerk allgemein, Öffentliche Verwaltung, Transport / Logistik, Maschinen / Anlagenbau |
+| **Tieflohn** | Detail / Grosshandel, Gastgewerbe / Hotellerie, Gesundheits / Sozialwesen, Industrie diverse |
 
 ### Rechtliche Grundlage Web Scraping
 Die Datenerhebung auf jobs.ch erfolgt im Rahmen des **Urheberrechtsgesetz Art. 24d URG** (Werknutzung zum Zweck der wissenschaftlichen Forschung). Es wurden ausschliesslich öffentlich zugängliche Inserate im Rahmen eines studentischen Forschungsprojekts gesammelt. Der Scraper verwendet `DOWNLOAD_DELAY=3` Sekunden sowie `CONCURRENT_REQUESTS=1`, um die Server nicht zu belasten.
@@ -49,10 +57,10 @@ pip install -r requirements.txt
 
 ### Pipeline-Reihenfolge
 ```bash
-# Schritt 1: Rohdaten von jobs.ch scrapen (~20 Min. wegen Rate-Limiting)
+# Schritt 1: Rohdaten von jobs.ch scrapen (~90 Min. wegen Rate-Limiting)
 python3 jobs_ch_scraper.py
 
-# Schritt 2: BFS-Lohndaten via CKAN API laden
+# Schritt 2: BFS-Lohndaten via CKAN API laden (~1 Min.)
 python3 bfs_lohndaten_ckan.py
 
 # Schritt 3: Daten bereinigen, Skills extrahieren, Datensätze mergen
@@ -77,9 +85,9 @@ python3 visualisierungen.py
 ### Daten
 | Datei | Zweck |
 |---|---|
-| `rohdaten_jobs.csv` | Rohe Scraping-Ausgabe (320 Jobs) |
+| `rohdaten_jobs.csv` | Rohe Scraping-Ausgabe (~1'800 Jobs) |
 | `lohndaten_bfs.csv` | BFS Medianlöhne (368 Zeilen) |
-| `merged_dataset.csv` | Finaler bereinigter Datensatz (319 Zeilen, 20 Spalten) |
+| `merged_dataset.csv` | Finaler bereinigter Datensatz |
 
 ### Visualisierungen
 | Datei | Zweck |
@@ -99,7 +107,18 @@ python3 visualisierungen.py
 
 ---
 
-## 5. Key Findings
+## 5. Datensatz-Versionen
+
+| Version | Branchen | Jobs | Filter-Typ | Datum |
+|---|---|---|---|---|
+| v1 | 8 (Berufsfeld) | 320 | `?category=X` | April 2026 |
+| v2 | 18 (Branche) | ~1'800 | `?industry=X` | April 2026 |
+
+**Warum v2?** Feedback Coaching Call: Datensatz zu klein (min. 1'000 Jobs). Ausserdem matcht der `industry`-Filter von jobs.ch direkt mit den BFS-Wirtschaftszweigen, was den Merge sauberer macht als der alte `category`-Filter.
+
+---
+
+## 6. Key Findings
 
 1. **Python, SQL und Englisch** sind die meistgefragten Skills (zusammen in über 40% der Inserate).
 2. **Zürich führt bei Inserats-Gehältern** deutlich vor Genf und Basel. BFS-Medianlöhne liegen in Zürich ebenfalls an der Spitze, die Lücke ist jedoch kleiner als erwartet.
@@ -109,16 +128,17 @@ python3 visualisierungen.py
 
 ---
 
-## 6. Limitationen
+## 7. Limitationen
 
-- **Gehaltstransparenz nur bei 42% der Inserate** (138 von 320). Die übrigen Inserate enthalten keine Gehaltsangabe → Analysen zu Gehalt basieren auf dieser Teilmenge.
-- **Jobs.ch Schätzungen**: Ein Teil der angegebenen Gehälter sind von jobs.ch berechnete Schätzungen, keine offiziellen Arbeitgeberangaben. Dies wird im Chart 2 transparent mit "jobs.ch Schätzung" kommuniziert.
-- **Branchen-Mapping vereinfacht**: Die 8 jobs.ch-Kategorien wurden auf BFS-Wirtschaftszweige gemappt, was stellenweise Vereinfachungen bedeutet (z.B. wurde "Finance/Trusts/Real Estate" der BFS-Kategorie "Finanz- u. Versicherungsdienstleistungen" zugeordnet).
+- **Gehaltstransparenz nur bei ~42% der Inserate**. Die übrigen enthalten keine Gehaltsangabe → Analysen zu Gehalt basieren auf dieser Teilmenge.
+- **Jobs.ch Schätzungen**: Ein Teil der angegebenen Gehälter sind von jobs.ch berechnete Schätzungen, keine offiziellen Arbeitgeberangaben. Dies wird in Chart 2 transparent kommuniziert.
+- **Branchen-Mapping vereinfacht**: Die 18 jobs.ch-Branchen wurden auf BFS-Wirtschaftszweige gemappt, was stellenweise Vereinfachungen bedeutet.
+- **Mehrsprachigkeit**: jobs.ch enthält Inserate auf Deutsch, Französisch und Englisch. Skill-Extraktion wurde für alle drei Sprachen optimiert.
 - **Snapshot**: Daten wurden im April 2026 erhoben und reflektieren eine Momentaufnahme.
 
 ---
 
-## 7. KI-Nutzung
+## 8. KI-Nutzung
 
 Dieses Projekt wurde unter aktivem Einsatz von KI-Coding-Assistenten erstellt (GitHub Copilot und Claude). Die konzeptionelle Planung, die Wahl der Forschungsfragen, die Datenquellen-Auswahl, das Branchen-Mapping, die Visualisierungs-Strategie und die inhaltliche Interpretation der Ergebnisse wurden vollständig vom Autor selbst erarbeitet.
 
@@ -132,7 +152,7 @@ KI wurde primär eingesetzt für:
 
 ---
 
-## 8. Stack Overflow Fragen
+## 9. Stack Overflow Fragen
 
 1. [scrapy CONCURRENT_REQUESTS ignored when DOWNLOAD_DELAY set?](https://stackoverflow.com/questions/37461327)
 2. [Pandas Merging 101](https://stackoverflow.com/questions/53645882)
@@ -143,7 +163,7 @@ KI wurde primär eingesetzt für:
 
 ---
 
-## 9. Abgaben & Termine
+## 10. Abgaben & Termine
 
 | Was | Wann |
 |---|---|
@@ -154,7 +174,7 @@ KI wurde primär eingesetzt für:
 
 ---
 
-## 10. Kontakt
+## 11. Kontakt
 
 **Robin D.** | HSG Universität St. Gallen | FS 2026
 GitHub: [github.com/robidu/data2dollar-jobs](https://github.com/robidu/data2dollar-jobs)

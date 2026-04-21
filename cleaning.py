@@ -37,6 +37,8 @@ df_bfs  = pd.read_csv("lohndaten_bfs.csv")
 print(f"Jobs-Datensatz : {df_jobs.shape[0]} Zeilen, {df_jobs.shape[1]} Spalten")
 print(f"BFS-Datensatz  : {df_bfs.shape[0]} Zeilen, {df_bfs.shape[1]} Spalten")
 print(f"\nFehlende Werte (Jobs):\n{df_jobs.isnull().sum()}")
+print(f"\nBranchen im Datensatz:")
+print(df_jobs["category"].value_counts())
 
 # =============================================================================
 # 2. JOBS - GRUNDBEREINIGUNG
@@ -108,12 +110,25 @@ def parse_gehalt(salary_str):
 
 df_jobs["gehalt_monat_chf"] = df_jobs["salary_range"].apply(parse_gehalt)
 
-# HUMAN: Zweite Plausibilitaetspruefung (Monatslohn zwischen 3'000 und 25'000)
+# HUMAN: Zweite Plausibilitaetspruefung (Monatslohn zwischen 3'500 und 20'000)
+# Verschaerft gegenueber v1 weil bei 1800 Jobs ein paar Parsing-Fehler auftreten.
+# Beispiel: "Apprenti.e CFC 3 ans" mit CHF 23'400 ist Ausbildungsgehalt ueber 3 Jahre,
+# nicht Monatslohn -> wird rausgefiltert.
 maske = (
     df_jobs["gehalt_monat_chf"].notna() &
-    ((df_jobs["gehalt_monat_chf"] < 3000) | (df_jobs["gehalt_monat_chf"] > 25000))
+    ((df_jobs["gehalt_monat_chf"] < 3500) | (df_jobs["gehalt_monat_chf"] > 20000))
 )
 df_jobs.loc[maske, "gehalt_monat_chf"] = np.nan
+
+# HUMAN: Zusaetzlicher Apprenti/Stagiaire-Filter - Ausbildungsgehaelter sind
+# keine regulaeren Monatsloehne und verfaelschen die Statistik
+apprenti_keywords = ["apprenti", "lehrling", "stagiaire", "praktikant", "intern "]
+for kw in apprenti_keywords:
+    maske_app = (
+        df_jobs["gehalt_monat_chf"].notna() &
+        df_jobs["job_title"].str.lower().str.contains(kw, na=False)
+    )
+    df_jobs.loc[maske_app, "gehalt_monat_chf"] = np.nan
 
 # HUMAN: Jahresgehalt mit 13 Monatsloehnen (CH-Standard), nicht 12
 df_jobs["gehalt_jahr_chf"] = df_jobs["gehalt_monat_chf"] * 13
@@ -166,8 +181,8 @@ print(df_jobs["seniority"].value_counts())
 # 5. SKILLS AUS skills_text EXTRAHIEREN
 # =============================================================================
 # HUMAN: Die Skill-Liste ist 100% Eigenleistung - basiert auf meiner Recherche
-# zu den relevantesten Skills fuer die 8 gewaehlten Branchen im CH-Markt 2026.
-# Strukturiert nach: Programmiersprachen, BI/Analytics, Cloud, ML/AI, DB, 
+# zu den relevantesten Skills fuer die 18 gewaehlten Branchen im CH-Markt 2026.
+# Strukturiert nach: Programmiersprachen, BI/Analytics, Cloud, ML/AI, DB,
 # Projektmanagement, Sprachen, Branchenspezifisch.
 
 print("\n" + "=" * 60)
@@ -254,8 +269,11 @@ STADT_MAPPING = {
     # Bern
     "bern": "Bern", "berne": "Bern",
     "koeniz": "Bern", "ostermundigen": "Bern", "zollikofen": "Bern",
+    "ittigen": "Bern", "muri bei bern": "Bern", "liebefeld": "Bern",
+    "burgdorf": "Bern", "langenthal": "Bern",
     "3000": "Bern", "3001": "Bern", "3003": "Bern",
     "3005": "Bern", "3006": "Bern", "3008": "Bern",
+    "3400": "Bern", "3401": "Bern", "3402": "Bern",  # Burgdorf PLZ
     # Genf
     "genf": "Genf", "geneva": "Genf", "genève": "Genf", "geneve": "Genf",
     "meyrin": "Genf", "vernier": "Genf", "carouge": "Genf",
@@ -267,7 +285,9 @@ STADT_MAPPING = {
     "1005": "Lausanne", "1006": "Lausanne", "1007": "Lausanne",
     # Zug
     "zug": "Zug", "baar": "Zug", "cham": "Zug", "steinhausen": "Zug",
+    "rotkreuz": "Zug", "risch": "Zug", "hünenberg": "Zug", "huenenberg": "Zug",
     "6300": "Zug", "6301": "Zug", "6302": "Zug", "6303": "Zug", "6304": "Zug",
+    "6340": "Zug", "6341": "Zug", "6343": "Zug",
     # Luzern
     "luzern": "Luzern", "lucerne": "Luzern", "emmen": "Luzern", "kriens": "Luzern",
     "6000": "Luzern", "6003": "Luzern", "6004": "Luzern", "6005": "Luzern",
@@ -279,18 +299,21 @@ STADT_MAPPING = {
     "6900": "Lugano", "6901": "Lugano", "6902": "Lugano",
     # Weitere
     "neuchatel": "Neuchatel", "neuchâtel": "Neuchatel",
-    "fribourg": "Fribourg", "freiburg": "Fribourg",
+    "fribourg": "Fribourg", "freiburg": "Fribourg", "bulle": "Fribourg",
     "sion": "Sion", "sierre": "Sierre",
     "biel": "Biel", "bienne": "Biel",
     "schaffhausen": "Schaffhausen", "chur": "Chur", "aarau": "Aarau",
-    "solothurn": "Solothurn", "thun": "Thun",
-    "visp": "Visp", "martigny": "Martigny",
+    "solothurn": "Solothurn", "egerkingen": "Solothurn", "olten": "Solothurn",
+    "thun": "Thun",
+    "visp": "Visp", "martigny": "Martigny", "montreux": "Montreux",
+    "frauenfeld": "Frauenfeld", "winterthur": "Winterthur",
 }
 
 # HUMAN: Zuordnung Stadt -> BFS-Grossregion (7 Regionen + "Andere")
 # Basis: offizielle BFS NUTS-2 Regionenklassifikation
 STADT_ZU_REGION = {
     "Zuerich":      "Zürich",
+    "Winterthur":   "Zürich",
     "Basel":        "Nordwestschweiz",
     "Aarau":        "Nordwestschweiz",
     "Bern":         "Espace Mittelland",
@@ -304,12 +327,14 @@ STADT_ZU_REGION = {
     "Sion":         "Genferseeregion",
     "Sierre":       "Genferseeregion",
     "Martigny":     "Genferseeregion",
+    "Montreux":     "Genferseeregion",
     "Visp":         "Genferseeregion",
     "Zug":          "Zentralschweiz",
     "Luzern":       "Zentralschweiz",
     "St. Gallen":   "Ostschweiz",
     "Schaffhausen": "Ostschweiz",
     "Chur":         "Ostschweiz",
+    "Frauenfeld":   "Ostschweiz",
     "Lugano":       "Tessin",
 }
 
@@ -345,39 +370,70 @@ print("\nBFS-Regionen:")
 print(df_jobs["bfs_region"].value_counts())
 
 # =============================================================================
-# 7. BRANCHE -> BFS-WIRTSCHAFTSZWEIG (EXAKTE BFS-NAMEN)
+# 7. BRANCHE -> BFS-WIRTSCHAFTSZWEIG (18 BRANCHEN - NEUER SCRAPER)
 # =============================================================================
 # HUMAN: Dieses Mapping ist eine bewusste konzeptionelle Entscheidung des Autors.
 # jobs.ch arbeitet mit eigenen Kategorie-IDs, BFS mit NOGA-Klassifikation.
 # Ich habe manuell die beste Entsprechung pro Branche gewaehlt.
-# Bewusste Vereinfachungen: "Real Estate" und "Banking" beide auf
-# "Finanz- u. Versicherungsdienstleistungen" weil BFS sie nicht separat ausweist.
+# 18 Branchen in 3 Lohnkategorien gruppiert fuer bessere Visualisierung.
 
 print("\n" + "=" * 60)
-print("SCHRITT 7: Branche -> BFS-Wirtschaftszweig")
+print("SCHRITT 7: Branche -> BFS-Wirtschaftszweig (18 Branchen)")
 print("=" * 60)
 
 # HUMAN: Mapping komplett vom Autor - exakte BFS-Bezeichnungen verwendet
-BRANCHE_MAPPING = {
-    "IT/Telecom":
-        "Informationstechnologie u. Informationsdienstl.",
-    "Finance/Trusts/Real Estate":
-        "Finanz- u. Versicherungsdienstleistungen",
-    "Banking/Insurance":
-        "Finanz- u. Versicherungsdienstleistungen",
-    "Marketing/Communications":
-        "Sonst. wirtschaftliche Dienstleistungen",
-    "Consulting/Company Development":
-        "Freiberufliche, wissenschaftliche und technische Dienstl.",
-    "Engineering/Watches":
-        "Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",
-    "Chemical/Pharma/Biotech":
-        "Herst. v. pharmazeutischen Erzeugnissen",
-    "Construction/Architecture":
-        "Baugewerbe",
+# Hochlohn-Branchen: typisch >8000 CHF/Monat
+# Mittellohn: 6000-8000 CHF/Monat
+# Tieflohn: <6000 CHF/Monat
+CATEGORY_TO_BFS = {
+    # Hochlohn
+    "Banken / Finanzinstitute":       "Finanz- u. Versicherungsdienstleistungen",
+    "Chemie / Pharma":                "Herst. v. pharmazeutischen Erzeugnissen",
+    "Informatik / Telekommunikation": "Informationstechnologie u. Informationsdienstl.",
+    "Rechts- / Wirtschaftsberatung":  "Freiberufliche, wissenschaftliche und technische Dienstl.",
+    "Versicherungen":                 "Versicherungen",
+    "Medizinaltechnik":               "Herst. v. Datenverarbeitungsge., elektron. u. opt. Erz.; Uhren",
+    # Mittellohn
+    "Baugewerbe / Immobilien":        "Baugewerbe",
+    "Beratung diverse":               "Freiberufliche, wissenschaftliche und technische Dienstl.",
+    "Bildungswesen":                  "Erziehung und Unterricht",
+    "Energie / Wasserwirtschaft":     "Energieversorgung",
+    "Gewerbe / Handwerk allgemein":   "Verarbeitendes Gewerbe/Herst. v. Waren",
+    "Oeffentliche Verwaltung":        "Öffentl. Verwaltung, Verteidigung; Sozialvers.",
+    "Transport / Logistik":           "Verkehr u. Lagerei",
+    "Maschinen / Anlagenbau":         "Maschinenbau",
+    # Tieflohn
+    "Detail / Grosshandel":           "Handel; Instandhaltung u. Rep. von Motorfahrz.",
+    "Gastgewerbe / Hotellerie":       "Gastgewerbe/Beherbergung u. Gastronomie",
+    "Gesundheits / Sozialwesen":      "Gesundheits- u. Sozialwesen",
+    "Industrie diverse":              "Verarbeitendes Gewerbe/Herst. v. Waren",
 }
 
-df_jobs["wirtschaftszweig_bfs"] = df_jobs["category"].map(BRANCHE_MAPPING).fillna("Andere")
+# HUMAN: Lohnkategorie fuer Farbkodierung in Visualisierungen
+LOHNKATEGORIE = {
+    "Banken / Finanzinstitute":       "Hochlohn",
+    "Chemie / Pharma":                "Hochlohn",
+    "Informatik / Telekommunikation": "Hochlohn",
+    "Rechts- / Wirtschaftsberatung":  "Hochlohn",
+    "Versicherungen":                 "Hochlohn",
+    "Medizinaltechnik":               "Hochlohn",
+    "Baugewerbe / Immobilien":        "Mittellohn",
+    "Beratung diverse":               "Mittellohn",
+    "Bildungswesen":                  "Mittellohn",
+    "Energie / Wasserwirtschaft":     "Mittellohn",
+    "Gewerbe / Handwerk allgemein":   "Mittellohn",
+    "Oeffentliche Verwaltung":        "Mittellohn",
+    "Transport / Logistik":           "Mittellohn",
+    "Maschinen / Anlagenbau":         "Mittellohn",
+    "Detail / Grosshandel":           "Tieflohn",
+    "Gastgewerbe / Hotellerie":       "Tieflohn",
+    "Gesundheits / Sozialwesen":      "Tieflohn",
+    "Industrie diverse":              "Tieflohn",
+}
+
+df_jobs["wirtschaftszweig_bfs"] = df_jobs["category"].map(CATEGORY_TO_BFS).fillna("Andere")
+df_jobs["lohnkategorie"]        = df_jobs["category"].map(LOHNKATEGORIE).fillna("Andere")
+
 print("Branchen-Mapping:")
 print(df_jobs.groupby("category")["wirtschaftszweig_bfs"].first().to_string())
 
@@ -411,7 +467,7 @@ df_bfs_agg = (
     })
 )
 
-# HUMAN: Fallback-Idee selbst: Wenn Region+Branche keinen Match gibt, 
+# HUMAN: Fallback-Idee selbst: Wenn Region+Branche keinen Match gibt,
 # nimm Schweiz-Gesamtmedian pro Branche. Wichtig damit kein Job unmapped bleibt.
 df_bfs_fallback = (
     df_bfs[df_bfs["region"] == "Schweiz"]
@@ -492,7 +548,7 @@ df_merged["skills_liste"] = df_merged["skills_liste"].apply(
 spalten_final = [
     "job_id", "job_title", "company", "location",
     "stadt_normalisiert", "bfs_region",
-    "category", "wirtschaftszweig_bfs",
+    "category", "lohnkategorie", "wirtschaftszweig_bfs",
     "seniority", "contract_type",
     "salary_range", "gehalt_monat_chf", "gehalt_jahr_chf",
     "bfs_medianlohn_chf", "lohn_diskrepanz_chf", "lohn_diskrepanz_pct",
@@ -504,19 +560,24 @@ df_final = df_merged[spalten_final].copy()
 
 df_final.to_csv("merged_dataset.csv", index=False, encoding="utf-8-sig")
 
+# HUMAN: Separater Datensatz nur mit Gehaltsangaben fuer Gehalts-Analysen
+df_mit_gehalt = df_final[df_final["gehalt_monat_chf"].notna()].copy()
+df_mit_gehalt.to_csv("merged_dataset_mit_gehalt.csv", index=False, encoding="utf-8-sig")
+
 print(f"Gespeichert: merged_dataset.csv")
-print(f"  Zeilen            : {df_final.shape[0]}")
-print(f"  Spalten           : {df_final.shape[1]}")
-print(f"  Gehaelter         : {df_final['gehalt_monat_chf'].notna().sum()}")
-print(f"  BFS-Matches       : {df_final['bfs_medianlohn_chf'].notna().sum()}")
-print(f"  Diskrepanz-Daten  : {df_final['lohn_diskrepanz_chf'].notna().sum()}")
+print(f"  Zeilen              : {df_final.shape[0]}")
+print(f"  Spalten             : {df_final.shape[1]}")
+print(f"  Gehaelter           : {df_final['gehalt_monat_chf'].notna().sum()}")
+print(f"  BFS-Matches         : {df_final['bfs_medianlohn_chf'].notna().sum()}")
+print(f"  Diskrepanz-Daten    : {df_final['lohn_diskrepanz_chf'].notna().sum()}")
+print(f"  Mit Gehalt (separat): {len(df_mit_gehalt)}")
 
 print("\nVorschau:")
 print(df_final[[
-    "job_title", "stadt_normalisiert", "seniority",
+    "job_title", "category", "stadt_normalisiert", "seniority",
     "gehalt_monat_chf", "bfs_medianlohn_chf", "lohn_diskrepanz_pct"
 ]].head(5).to_string())
 
 print("\n" + "=" * 60)
-print("Fertig. Output: merged_dataset.csv")
+print("Fertig. Output: merged_dataset.csv + merged_dataset_mit_gehalt.csv")
 print("=" * 60)

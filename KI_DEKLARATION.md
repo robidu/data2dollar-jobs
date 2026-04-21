@@ -38,7 +38,10 @@ Folgende **konzeptionelle und inhaltliche Entscheidungen** wurden vollständig v
 - Definition der 5 Forschungsfragen
 - Entwicklung der beiden Personas (Lena & Marcus)
 - Auswahl der Datenquellen (jobs.ch + BFS)
-- Entscheidung für 8 Branchen × 40 Jobs = 320 Datenpunkte
+- Entscheidung v1: 8 Branchen × 40 Jobs = 320 Datenpunkte (Berufsfeld-Filter)
+- Entscheidung v2 nach Coaching-Feedback: 18 Branchen × 100 Jobs = ~1'800 Datenpunkte (Branche-Filter)
+- Strategische Wahl der 18 von 24 verfügbaren Branchen (6 wegen zu wenig Jobs oder kein BFS-Match ausgelassen)
+- Wechsel von `?category=X` auf `?industry=X` Filter, weil dieser direkt mit BFS-Wirtschaftszweigen matcht
 - Wahl der 5 Visualisierungen (welche Charts sinnvoll sind)
 - HSG-Farbpalette und Design-Konzept
 - Interpretation aller Ergebnisse und Business-Insights
@@ -47,7 +50,7 @@ Folgende **konzeptionelle und inhaltliche Entscheidungen** wurden vollständig v
 - **Skill-Liste** (`SKILL_LISTE` in cleaning.py): Auswahl der 50+ relevanten Skills für den Schweizer Markt
 - **Stadt-Mapping** (`STADT_MAPPING` in cleaning.py): Zuordnung von Gemeinden und PLZ zu Hauptstädten
 - **Stadt → BFS-Region Mapping** (`STADT_ZU_REGION`): Zuordnung zu den 7 BFS-Grossregionen
-- **Branchen-Mapping** (`BRANCHE_MAPPING`): jobs.ch Kategorien → BFS-Wirtschaftszweige
+- **Branchen-Mapping** (`BRANCHE_MAPPING`): 18 jobs.ch Branchen (industry-Filter) → BFS-Wirtschaftszweige
 - **Seniority-Heuristik**: Keywords für Lead/Senior/Mid/Junior-Klassifikation
 - **Plausibilitäts-Schwellen** für Gehaltsangaben (3000-25000 CHF/Monat)
 

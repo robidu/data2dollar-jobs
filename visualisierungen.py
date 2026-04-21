@@ -213,16 +213,23 @@ print("  -> 01_top15_skills.png")
 print("Chart 2: Gehalt nach Stadt ...")
 
 df_g = df.dropna(subset=["gehalt_monat_chf"]).copy()
-# HUMAN: Mindest-Jobs pro Stadt = 5 (Plausibilitaetsfilter)
+# HUMAN: Verschaerfte Mindest-Jobs pro Stadt = 15 (statt 5).
+# Grund: Bei n<15 entstehen zufaellige Ausreisser die den Stadtvergleich verzerren.
+# Agglomerationen werden bereits in cleaning.py zusammengefasst (Rotkreuz->Zug,
+# Burgdorf->Bern, Egerkingen->Solothurn, Montreux->Genferseeregion) damit wir
+# aussagekraeftige Fallzahlen haben.
+MIN_N_STADT = 15
 staedte_ok = df_g["stadt_de"].value_counts()
-staedte_ok = staedte_ok[staedte_ok >= 5].index.tolist()
+staedte_ok = staedte_ok[staedte_ok >= MIN_N_STADT].index.tolist()
 df_g = df_g[df_g["stadt_de"].isin(staedte_ok)]
 
 agg = (df_g.groupby("stadt_de")
        .agg(jobs_lohn=("gehalt_monat_chf", "mean"),
-            bfs_lohn =("bfs_medianlohn_chf", "mean"))
+            bfs_lohn =("bfs_medianlohn_chf", "mean"),
+            n        =("gehalt_monat_chf", "count"))
        .reset_index()
-       .sort_values("jobs_lohn", ascending=False))
+       .sort_values("jobs_lohn", ascending=False)
+       .head(8))
 
 fig, ax = plt.subplots(figsize=(13, 7))
 # KI-ASSISTIERT: Dual-Bar-Muster mit x +/- width/2 - Standard Matplotlib-Trick
@@ -250,18 +257,21 @@ for bar in b2:
                 f"CHF {h:,.0f}", ha="center", va="bottom",
                 fontsize=8.5, color=HSG_GRAU, fontweight="bold")
 
-ax.set_title("Gehaltsvergleich nach Stadt: jobs.ch vs. BFS-Medianlohn",
-             fontsize=14, fontweight="bold", color=HSG_GRAU)
+ax.set_title(f"Gehaltsvergleich nach Stadt: jobs.ch vs. BFS-Medianlohn  (min n={MIN_N_STADT} pro Stadt)",
+             fontsize=13, fontweight="bold", color=HSG_GRAU)
 ax.set_xlabel("Stadt", fontsize=11)
 ax.set_ylabel("Monatslohn in CHF", fontsize=11)
 ax.set_xticks(x)
-ax.set_xticklabels(agg["stadt_de"], rotation=0)
+# HUMAN: Stichprobengroesse unter Stadtnamen, damit Lesbarkeit klar bleibt
+xlabels = [f"{s}\n(n={int(n)})" for s, n in zip(agg["stadt_de"], agg["n"])]
+ax.set_xticklabels(xlabels, rotation=0, fontsize=10)
 ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"CHF {v:,.0f}"))
 ax.legend(loc="upper right", framealpha=0.9, fontsize=10)
+ax.set_ylim(0, max(agg["jobs_lohn"].max(), agg["bfs_lohn"].max()) * 1.22)
 
-# HUMAN: Persona-Annotation fuer Lena
+# HUMAN: Persona-Annotation fuer Lena (oben links damit keine Ueberlappung)
 ax.annotate("Für Lena: Wo kann sie als Einsteigerin am meisten verdienen?",
-            xy=(0.02, 0.02), xycoords="axes fraction",
+            xy=(0.02, 0.92), xycoords="axes fraction",
             fontsize=8, color=HSG_GRUEN, style="italic",
             bbox=dict(boxstyle="round,pad=0.3", facecolor=HSG_HELLGRAU, alpha=0.8))
 
@@ -272,66 +282,73 @@ plt.close()
 print("  -> 02_gehalt_nach_stadt.png")
 
 # =============================================================================
-# CHART 3: SENIORITY VS. GEHALT
+# CHART 3: SENIORITY VS. GEHALT (NUR HOCHLOHN-BRANCHEN)
 # =============================================================================
-# HUMAN: Chart-Konzept vom Autor - Jitter-Scatter um Verteilung sichtbar zu
-# machen plus Median-Linie pro Stufe als zentrale Metrik. Vertikaler Scatter
-# mit Jitter verhindert Ueberlappung bei gleichen X-Werten.
+# HUMAN: Chart komplett ueberarbeitet. Problem im v1: Ueber alle 18 Branchen
+# gemischt zeigte "Mid" (CHF 6684) weniger als "Junior" (CHF 7416) - das ist
+# kontraintuitiv und ein Artefakt der Branchen-Mischung.
+# Hintergrund: "Mid" ist Default-Kategorie wenn kein Seniority-Keyword gefunden
+# wurde. Viele Tieflohn-Jobs (Gastgewerbe, Detailhandel) fallen in "Mid" und
+# druecken den Median nach unten. Junior-Jobs kommen hingegen ueberproportional
+# aus Tech/Finance wo Eintrittsloehne bereits hoch sind.
+#
+# Loesung: Analyse beschraenken auf Hochlohn-Branchen. Dort ist Seniority
+# tatsaechlich der dominante Gehaltstreiber, nicht die Branche.
 
-print("Chart 3: Seniority vs. Gehalt ...")
+print("Chart 3: Seniority vs. Gehalt (Hochlohn-Branchen) ...")
 
 df_s = df.dropna(subset=["gehalt_monat_chf"]).copy()
-hinweis = "Basierend auf jobs.ch Gehaltsangaben"
 
-# HUMAN: Fallback-Logik falls Datensatz zu klein. Bei diesem Datensatz (134 Werte)
-# greift der Fallback NICHT - nur als Defense fuer Edge-Cases vorhanden.
-if df_s.shape[0] < 20:
-    df_s = df.dropna(subset=["bfs_medianlohn_chf"]).copy()
-    faktor = {"Junior": 0.78, "Mid": 1.0, "Senior": 1.28, "Lead/Manager": 1.55}
-    np.random.seed(42)
-    df_s["gehalt_monat_chf"] = df_s.apply(
-        lambda r: r["bfs_medianlohn_chf"] * faktor.get(r["seniority"], 1.0)
-                  * np.random.normal(1.0, 0.08), axis=1)
-    hinweis = "Schätzung: BFS-Medianlohn × Seniority-Faktor"
-
+# HUMAN: Filter auf Hochlohn-Branchen - nur dort ist Seniority-Progression klar
+df_s = df_s[df_s["lohnkategorie"] == "Hochlohn"].copy()
 df_s = df_s[df_s["seniority"].isin(SENIORITY_ORDER)].copy()
-seniority_num = {s: i for i, s in enumerate(SENIORITY_ORDER)}
+
+# HUMAN: Mindest-Fallzahl pro Stufe = 10 (statt 5).
+# Grund: Bei n<10 ist Median zu anfaellig fuer Einzel-Ausreisser.
+# Junior in Hochlohn-Branchen hat oft nur 5 Datenpunkte, das reicht nicht
+# fuer einen belastbaren Medianvergleich.
+n_pro_stufe = df_s["seniority"].value_counts()
+ausreichend = n_pro_stufe[n_pro_stufe >= 10].index.tolist()
+df_s = df_s[df_s["seniority"].isin(ausreichend)].copy()
+
+seniority_num = {s: i for i, s in enumerate(SENIORITY_ORDER) if s in ausreichend}
 df_s["seniority_num"] = df_s["seniority"].map(seniority_num)
 
 fig, ax = plt.subplots(figsize=(12, 7))
 np.random.seed(99)
 
-# KI-ASSISTIERT: Jitter-Implementation mit np.random.uniform - Standard-Pattern
-# fuer kategorielle Scatterplots
-for level in SENIORITY_ORDER:
+# KI-ASSISTIERT: Jitter-Scatter + Median-Linie - Standard-Pattern fuer kategorielle Daten
+for level in [s for s in SENIORITY_ORDER if s in seniority_num]:
     sub = df_s[df_s["seniority"] == level]
     if sub.empty:
         continue
-    jitter = sub["seniority_num"] + np.random.uniform(-0.15, 0.15, len(sub))
+    jitter = sub["seniority_num"] + np.random.uniform(-0.18, 0.18, len(sub))
     ax.scatter(jitter, sub["gehalt_monat_chf"],
-               color=SENIORITY_FARBEN[level], alpha=0.72, s=65,
-               edgecolors="white", linewidth=0.5, label=level, zorder=3)
+               color=SENIORITY_FARBEN[level], alpha=0.6, s=55,
+               edgecolors="white", linewidth=0.4, label=level, zorder=3)
     # HUMAN: Median-Bar pro Stufe als zentrale Insight-Linie
     n   = seniority_num[level]
     med = sub["gehalt_monat_chf"].median()
     ax.hlines(med, n-0.32, n+0.32,
-              colors=SENIORITY_FARBEN[level], linewidths=2.8, zorder=4)
-    ax.text(n+0.35, med, f"Median:\nCHF {med:,.0f}",
-            va="center", fontsize=8.5,
+              colors=SENIORITY_FARBEN[level], linewidths=3, zorder=4)
+    ax.text(n+0.36, med, f"Median:\nCHF {med:,.0f}\n(n={len(sub)})",
+            va="center", fontsize=9,
             color=SENIORITY_FARBEN[level], fontweight="bold")
 
-ax.set_title("Lohnt sich mehr Erfahrung? Seniority vs. Monatsgehalt",
-             fontsize=14, fontweight="bold", color=HSG_GRAU)
+ax.set_title("Lohnt sich mehr Erfahrung? Seniority vs. Monatsgehalt\n"
+             "(nur Hochlohn-Branchen: Banken, IT, Pharma, Consulting, Versicherungen, Medtech)",
+             fontsize=12, fontweight="bold", color=HSG_GRAU)
 ax.set_ylabel("Monatslohn in CHF", fontsize=11)
 ax.set_xlabel("Karrierestufe", fontsize=11)
-ax.set_xticks(range(len(SENIORITY_ORDER)))
-ax.set_xticklabels(SENIORITY_ORDER, fontsize=11)
+ax.set_xticks(list(seniority_num.values()))
+ax.set_xticklabels(list(seniority_num.keys()), fontsize=11)
 ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"CHF {v:,.0f}"))
 ax.legend(title="Karrierestufe", loc="upper left", framealpha=0.9, fontsize=9)
 
-# HUMAN: Persona-Annotation fuer Marcus
+# HUMAN: Persona-Annotation fuer Marcus + Methoden-Hinweis
 ax.annotate(
-    f"Für Marcus: Federt Senior-Erfahrung den Branchenwechsel ab? | {hinweis}",
+    "Für Marcus: Federt Senior-Erfahrung den Branchenwechsel ab?\n"
+    "Hinweis: 'Mid' = Default-Kategorie für Jobs ohne Seniority-Keyword | Stufen mit n<10 ausgeschlossen",
     xy=(0.02, 0.02), xycoords="axes fraction",
     fontsize=7.5, color=HSG_GRUEN, style="italic",
     bbox=dict(boxstyle="round,pad=0.3", facecolor=HSG_HELLGRAU, alpha=0.8))
@@ -435,35 +452,60 @@ print("Chart 5: Lohn-Lücke Heatmap ...")
 
 df_h = df.dropna(subset=["lohn_diskrepanz_pct"]).copy()
 
-# KI-ASSISTIERT: Pivot mit groupby/mean/unstack - Standard-Pattern fuer Heatmap-Input
-pivot_h = (
-    df_h.groupby(["branche_de", "region_de"])["lohn_diskrepanz_pct"]
-    .mean()
-    .unstack("region_de")
-    .round(1)
-)
+# HUMAN: Mindestanzahl Datenpunkte pro Zelle (Branche x Region).
+# Vorher: Zellen mit n=1 (z.B. 1 Apprenti-Job in Genferseeregion) produzierten
+# statistische Ausreisser wie +249% die die ganze Heatmap unglaubwuerdig machten.
+# Jetzt: Zellen mit n<3 werden leer gelassen.
+MIN_N_ZELLE = 3
 
-# HUMAN: Spalten-Reihenfolge bewusst nach wirtschaftlicher Bedeutung gewaehlt,
-# nicht alphabetisch. Zuerich zuerst (wichtigster Markt), dann absteigend.
+# HUMAN: Gruppierung mit Mean + Count, dann Filter auf min n=3
+gruppen = df_h.groupby(["branche_de", "region_de"]).agg(
+    mittel=("lohn_diskrepanz_pct", "mean"),
+    anzahl=("lohn_diskrepanz_pct", "count")
+).reset_index()
+gruppen_gefiltert = gruppen[gruppen["anzahl"] >= MIN_N_ZELLE]
+
+# KI-ASSISTIERT: Pivot mit dem gefilterten DataFrame
+pivot_h = (gruppen_gefiltert
+           .pivot_table(index="branche_de", columns="region_de", values="mittel")
+           .round(1))
+
+# HUMAN: Spalten-Reihenfolge bewusst nach wirtschaftlicher Bedeutung gewaehlt
 reihenfolge = ["Zürich", "Genferseeregion", "Mittelland",
                "Nordwestschweiz", "Zentralschweiz", "Ostschweiz",
                "Tessin", "Übrige"]
-pivot_h = pivot_h.reindex(
-    columns=[c for c in reihenfolge if c in pivot_h.columns])
+pivot_h = pivot_h.reindex(columns=[c for c in reihenfolge if c in pivot_h.columns])
 
-# HUMAN: Zeilen-Sortierung nach Durchschnitt (hoechste Lohn-Abweichung oben)
-pivot_h = pivot_h.loc[pivot_h.mean(axis=1).sort_values(ascending=False).index]
+# HUMAN: Zeilen nach Lohnkategorie gruppieren (Hochlohn oben, Tieflohn unten)
+lohnkat_map = df.drop_duplicates("category").set_index("category")["lohnkategorie"].to_dict()
+branche_to_kat = df.drop_duplicates("branche_de").set_index("branche_de")["lohnkategorie"].to_dict()
 
-fig, ax = plt.subplots(figsize=(14, 8))
+lohnkat_order = []
+for kat in ["Hochlohn", "Mittellohn", "Tieflohn", "Andere"]:
+    for b in pivot_h.index:
+        if branche_to_kat.get(b, "Andere") == kat and b not in lohnkat_order:
+            lohnkat_order.append(b)
+pivot_h = pivot_h.reindex([b for b in lohnkat_order if b in pivot_h.index])
+
+# HUMAN: n-Anzahl-Matrix fuer Annotations (zeigt Fallzahl pro Zelle)
+n_matrix = (gruppen_gefiltert
+            .pivot_table(index="branche_de", columns="region_de", values="anzahl")
+            .reindex(index=pivot_h.index, columns=pivot_h.columns))
+
+fig, ax = plt.subplots(figsize=(15, 10))
 
 # VIBE-CODED: Annotation-Override-Trick. Seaborn heatmap zeigt standardmaessig
-# nur Zahlen. Ich wollte aber "+12.5%" Format. Loesung: zweiten DataFrame mit
-# String-Werten bauen und als annot= uebergeben, fmt="" fuer kein Auto-Format.
-# Diesen Trick kannte ich vorher nicht - von Claude erklaert.
-annot_df = pivot_h.copy()
+# nur Zahlen. Ich wollte aber "+12.5%\n(n=7)" Format mit Vorzeichen und Fallzahl.
+# Loesung: zweiten DataFrame mit String-Werten bauen und als annot= uebergeben.
+annot_df = pivot_h.copy().astype(object)
 for col in annot_df.columns:
-    annot_df[col] = annot_df[col].apply(
-        lambda v: f"{v:+.1f}%" if pd.notna(v) else "")
+    for idx in annot_df.index:
+        wert = pivot_h.loc[idx, col]
+        n    = n_matrix.loc[idx, col]
+        if pd.notna(wert):
+            annot_df.loc[idx, col] = f"{wert:+.1f}%\n(n={int(n)})"
+        else:
+            annot_df.loc[idx, col] = ""
 
 sns.heatmap(
     pivot_h, ax=ax,
@@ -471,23 +513,32 @@ sns.heatmap(
     cmap="RdYlGn", center=0,
     linewidths=0.6, linecolor="white",
     cbar_kws={"label": "Diskrepanz in %\n(+ = Inserat über BFS-Median)", "shrink": 0.75},
-    annot_kws={"size": 9, "weight": "bold"},
-    vmin=-55, vmax=55,
+    annot_kws={"size": 7.5, "weight": "bold"},
+    vmin=-40, vmax=40,
 )
 
+# HUMAN: Trennlinien zwischen Lohnkategorien fuer bessere Lesbarkeit
+hochlohn_n   = sum(1 for b in pivot_h.index if branche_to_kat.get(b) == "Hochlohn")
+mittellohn_n = sum(1 for b in pivot_h.index if branche_to_kat.get(b) == "Mittellohn")
+if hochlohn_n > 0:
+    ax.axhline(y=hochlohn_n, color="white", linewidth=3)
+if mittellohn_n > 0:
+    ax.axhline(y=hochlohn_n + mittellohn_n, color="white", linewidth=3)
+
 ax.set_title(
-    "Lohn-Lücke: Stelleninserate vs. BFS-Medianlohn nach Branche und Region (%)",
-    fontsize=13, fontweight="bold", color=HSG_GRAU, pad=15)
+    f"Lohn-Lücke: Stelleninserate vs. BFS-Medianlohn nach Branche und Region (%)\n"
+    f"(min n={MIN_N_ZELLE} pro Zelle, Sortierung: Hochlohn / Mittellohn / Tieflohn)",
+    fontsize=12, fontweight="bold", color=HSG_GRAU, pad=15)
 ax.set_xlabel("BFS-Grossregion", fontsize=11)
 ax.set_ylabel("Branche", fontsize=11)
-ax.tick_params(axis="x", rotation=30, labelsize=10)
-ax.tick_params(axis="y", rotation=0,  labelsize=10)
+ax.tick_params(axis="x", rotation=30, labelsize=9)
+ax.tick_params(axis="y", rotation=0,  labelsize=9)
 
 # HUMAN: Doppel-Funktion Fusszeile: Quelle und Persona-Interpretation
 fig.text(
     0.5, 0.005,
     "Für Marcus: Grün = Inserate über BFS-Median | Rot = Inserate unter BFS-Median | "
-    "Quellen: jobs.ch | BFS LSE 2024",
+    "Leere Zellen = zu wenig Daten | Quellen: jobs.ch | BFS LSE 2024",
     ha="center", fontsize=8, color=HSG_GRAU, style="italic")
 
 plt.tight_layout(rect=[0, 0.04, 1, 1])
