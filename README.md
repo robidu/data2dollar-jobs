@@ -68,6 +68,9 @@ python3 cleaning.py
 
 # Schritt 4: 5 Visualisierungen erzeugen
 python3 visualisierungen.py
+
+# Schritt 5 (optional): Interaktives Dashboard lokal starten
+streamlit run app.py
 ```
 
 ---
@@ -81,6 +84,7 @@ python3 visualisierungen.py
 | `bfs_lohndaten_ckan.py` | BFS-Datenabruf via CKAN API von opendata.swiss |
 | `cleaning.py` | Bereinigung, Skill-Extraktion, Seniority-Zuordnung, Merge |
 | `visualisierungen.py` | Erzeugung von 5 Charts mit Matplotlib und Seaborn |
+| `app.py` | Interaktives Streamlit-Dashboard (Bonus, siehe §10) |
 
 ### Daten
 | Datei | Zweck |
@@ -156,6 +160,7 @@ KI wurde primär eingesetzt für:
 - Debugging von Pipeline-Problemen (z.B. Prioritäten-Konflikt bei Scrapy)
 - Statistische Qualitätssicherung (Mindest-Stichprobengrössen, Ausreisser-Filter)
 - Code-Review und Formatierung
+- **Umsetzung des interaktiven Dashboards (`app.py`, §10)** - primär vibe-coded
 
 **Eine detaillierte Auflistung aller KI-unterstützten Stellen findet sich in `KI_DEKLARATION.md`.**
 
@@ -172,7 +177,39 @@ KI wurde primär eingesetzt für:
 
 ---
 
-## 10. Abgaben & Termine
+## 10. Interaktives Dashboard (Bonus)
+
+Zusätzlich zur statischen Analyse (5 PNGs aus `visualisierungen.py`) wurde ein interaktives Streamlit-Dashboard gebaut, das alle 5 Visualisierungen mit Echtzeit-Filtern zugänglich macht. Damit kann der Datensatz frei exploriert werden, ohne dass Code ausgeführt werden muss.
+
+**Live-App:** https://data2dollar-jobs.streamlit.app *(Link nach Deployment aktualisieren)*
+
+### Features
+- Alle 5 Charts interaktiv (zoom, hover, tooltips)
+- **Persona-Switcher**: Lena (Einstieg) / Marcus (Senior Hochlohn) setzt passende Filter automatisch
+- **Filter**: Lohnkategorie (Hoch/Mittel/Tief), Branche, Stadt, Grossregion, Seniority, Arbeitsmodell, Gehaltsrange
+- **KPI-Header** mit Stichprobengrösse, Ø Monatslohn, Median-Diskrepanz, Hoch/Mittel/Tief-Breakdown
+- **CSV-Export** der gefilterten Daten
+
+### Ausführung lokal
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Browser öffnet automatisch auf `http://localhost:8501`.
+
+### Deployment
+Das Dashboard ist gratis auf **Streamlit Community Cloud** gehostet. Deployment erfolgt automatisch bei jedem GitHub-Push.
+
+### Abgrenzung
+Die statischen Charts aus `visualisierungen.py` bleiben die **primäre Abgabe** (Video, Hausarbeit). Das Dashboard ist eine ergänzende interaktive Aufbereitung derselben Daten für die explorative Analyse.
+
+### KI-Nutzung `app.py`
+Das gesamte Dashboard wurde **primär vibe-coded** mit Claude als Coding-Partner. Konzeption (welche Filter, welches Layout, Persona-Logik basierend auf Lohnkategorie) kam vom Autor, die Streamlit- und Plotly-Implementierung primär von KI. Siehe `KI_DEKLARATION.md` §5 für Details.
+
+---
+
+## 11. Abgaben & Termine
 
 | Was | Wann |
 |---|---|
@@ -183,7 +220,7 @@ KI wurde primär eingesetzt für:
 
 ---
 
-## 11. Kontakt
+## 12. Kontakt
 
 **Robin D.** | HSG Universität St. Gallen | FS 2026
 GitHub: [github.com/robidu/data2dollar-jobs](https://github.com/robidu/data2dollar-jobs)
