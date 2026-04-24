@@ -2,10 +2,6 @@
 
 **HSG FS 2026 | Robin D. | Swiss Job Market 2026**
 
-Dieses Dokument erfüllt die Selbstverpflichtung aus dem Projekt-Konzept:
-> "Code wird in VS Code mit GitHub Copilot geschrieben - KI als aktiver Coding-Partner.
-> Alle KI-generierten Codeabschnitte werden im GitHub Repository als solche deklariert."
-
 ---
 
 ## 1. Eingesetzte KI-Tools
@@ -46,7 +42,6 @@ Folgende **konzeptionelle und inhaltliche Entscheidungen** wurden vollständig v
 - Wahl der 5 Visualisierungen (welche Charts sinnvoll sind)
 - HSG-Farbpalette und Design-Konzept
 - Interpretation aller Ergebnisse und Business-Insights
-- **Entscheidung für interaktives Streamlit-Dashboard als Bonus-Abgabe** (nach Coaching-Feedback zu "Extra-Leistung ohne grossen manuellen Aufwand")
 
 ### Daten- und Mapping-Entscheidungen
 - **Skill-Liste** (`SKILL_LISTE` in cleaning.py): Auswahl der 50+ relevanten Skills für den Schweizer Markt
@@ -71,7 +66,7 @@ Folgende **konzeptionelle und inhaltliche Entscheidungen** wurden vollständig v
 - Persona-Annotationen ("Für Lena/Marcus") als Storytelling-Element in jedem Chart
 
 ### Dashboard-Konzept (`app.py`)
-- **Idee eines interaktiven Dashboards** als Ergänzung zu den statischen Charts (getriggert durch Coaching Call Feedback)
+- **Idee eines interaktiven Dashboards** als Ergänzung zu den statischen Charts
 - **Persona-Switcher-Logik**: Lena → Junior/Mid, Marcus → Hochlohn + Senior/Lead (basierend auf Lohnkategorie-Spalte, nicht auf brüchigem Keyword-Matching)
 - **Filter-Hierarchie** in der Sidebar: Persona → Lohnkategorie → Branche → geografische Filter → Seniority → Gehaltsrange
 - **Chart-3 Toggle**: "Nur Hochlohn-Branchen" (PNG-Default) vs. "Alle gefilterten Branchen" - ermöglicht explorative Analyse ohne den statistischen Default zu verlieren
@@ -126,7 +121,7 @@ Diese Stellen wurden **primär von KI generiert**. Der Autor hat sie verstanden,
   - Kenntnis-Level vorher: `pd.read_excel` ja, aber nicht multi-row-header-Handling
 
 ### `cleaning.py`
-- Keine vibe-coded Stellen - der Code ist insgesamt für den Autor nachvollziehbar
+- Der Code ist insgesamt für den Autor nachvollziehbar
 
 ### `visualisierungen.py`
 - **Seaborn Heatmap Annotation-Override** in Chart 5: `annot_df` als String-DataFrame für benutzerdefinierte Labels
@@ -139,14 +134,11 @@ Diese Stellen wurden **primär von KI generiert**. Der Autor hat sie verstanden,
 **Das gesamte Dashboard-File ist vibe-coded.** Die Konzeption (welche Filter, welches Layout, Persona-Logik, KPI-Auswahl) kam vollständig vom Autor. Die Streamlit- und Plotly-Implementierung kam primär aus dem KI-Dialog mit Claude. Der Autor hat jede Zeile verstanden, das Layout mehrfach iteriert und die App lokal getestet.
 
 - **Streamlit-Scaffold**: Page-Config, Tab-Struktur, Sidebar-Layout, Custom-CSS für HSG-Styling
-  - Grund: Streamlit war vorher nicht bekannt, erst im Dialog gelernt
-  - Kenntnis-Level vorher: Python / Pandas ja, Streamlit nein
 - **Plotly-Umsetzung der 5 Charts** (Übersetzung von Matplotlib/Seaborn auf Plotly)
   - `go.Bar` mit `barmode="group"` für Chart 2
   - `go.Scatter` mit Jitter-Berechnung + `add_shape` für Median-Linien in Chart 3
   - `go.Bar` mit `barmode="stack"` und `insidetextanchor="middle"` für Chart 4
   - `go.Heatmap` mit `texttemplate` für annotierte Heatmap in Chart 5
-  - Grund: Plotly-API war vorher nicht bekannt, Chart.js-Analogien haben beim Verstehen geholfen
 - **Cache-Strategie**: `@st.cache_data` für `load_data()` - wesentlich für Performance bei Filter-Änderungen
 - **Filter-Anwendungs-Logik** in `apply_filters()`: Defensive Handhabung von NaN-Werten beim Gehalts-Slider
 - **Persona-Logik-Mapping**: Automatische Filter-Defaults basierend auf `lohnkategorie`-Spalte (sauberer als Keyword-Matching über `category`)
@@ -178,34 +170,9 @@ Alle KI-unterstützten und vibe-coded Stellen wurden vom Autor **gelesen, nachvo
 
 > *"Man muss nicht jedes technische Detail verstehen - KI-Tools helfen bei der Erklärung und Anleitung der Codierung - Nutzung von KI zum Lernen und Experimentieren mit Code"*
 
-Konkret wurde KI gebeten, komplexe Stellen (z.B. das Scrapy Priority-System, die Next.js React-State-Regex, Streamlit-Cache-Strategie oder Plotly-Layout-Tricks) in einfachen Worten zu erklären, bevor der Code übernommen wurde.
-
 ---
 
-## 8. Beispielhafte Prompts
-
-Zur Transparenz hier einige reale Prompts, die an Claude gerichtet wurden:
-
-**Prompt zu Scrapy Priority-Problem:**
-> "Mein Scrapy Spider lädt zuerst alle Pagination-Seiten und startet erst danach mit den Detail-Requests. Ich will aber pro Kategorie sequentiell arbeiten: erst Details einer Seite, dann nächste Seite. Wie löse ich das?"
-
-**Prompt zu BFS-Excel:**
-> "Ich habe ein Excel vom BFS mit zweizeiligem Header (Zeile 3 und 4 kombiniert). Die Daten starten ab Zeile 6. Wie parse ich das sauber mit pandas?"
-
-**Prompt zu Seaborn Heatmap:**
-> "Ich will in sns.heatmap Zellen mit '+12.5%' Format annotieren, nicht nur mit Zahlen. Wie geht das?"
-
-**Prompt zu statistischer Review der Visualisierungen:**
-> "Schau dir meine 5 Charts kritisch an. Welche statistischen Probleme siehst du? Die Junior-Kategorie zeigt höhere Medianlöhne als Mid, das macht keinen Sinn."
-
-**Prompt zum Streamlit-Dashboard:**
-> "Ich habe 5 fertige Visualisierungen in visualisierungen.py und merged_dataset.csv. Coaching-Feedback: vorschlag interaktive Website bauen ohne grosse manuelle arbeit zusätzlich zur GitHub-Abgabe. Brauche Streamlit App mit allen 5 Charts, interaktive Filter, einfach zu deployen. Hier mein Schema: [Spalten]. Was macht am meisten Sinn?"
-
-Diese iterative Prompting-Strategie entspricht dem im Kurs empfohlenen Vibe-Coding-Vorgehen.
-
----
-
-## 9. Zusammenfassung
+## 8. Zusammenfassung
 
 | Kategorie | Anteil am Code (geschätzt) | Rolle Autor |
 |---|---|---|
@@ -214,5 +181,3 @@ Diese iterative Prompting-Strategie entspricht dem im Kurs empfohlenen Vibe-Codi
 | VIBE-CODED | ~30% | Primär KI-generiert, vom Autor verstanden und getestet (jobs.ch Scraper Extraktionen, BFS-Excel-Parser, Heatmap-Annotations, **komplettes Streamlit-Dashboard**) |
 
 *Hinweis: Durch die Ergänzung des Streamlit-Dashboards (ca. 700 Zeilen, primär vibe-coded) verschiebt sich der Code-Anteil in Richtung vibe-coded gegenüber der v1-Version des Projekts.*
-
-**Der Autor steht hinter jedem Code-Abschnitt und kann jede Entscheidung begründen.**

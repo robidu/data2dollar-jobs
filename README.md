@@ -209,18 +209,7 @@ Das gesamte Dashboard wurde **primär vibe-coded** mit Claude als Coding-Partner
 
 ---
 
-## 11. Abgaben & Termine
-
-| Was | Wann |
-|---|---|
-| Coaching Call (Zwischenstand + Visualisierungen) | 20.04.2026 |
-| Video-Präsentation + GitHub + Datensatz (Canvas) | 24.04.2026 |
-| Online-Diskussion (Zoom, 15 Min.) | 27.04.2026 |
-| Schriftliche Hausarbeit (5 Seiten, Paper-Stil) | 01.05.2026 |
-
----
-
-## 12. Kontakt
+## 11. Kontakt
 
 **Robin D.** | HSG Universität St. Gallen | FS 2026
 GitHub: [github.com/robidu/data2dollar-jobs](https://github.com/robidu/data2dollar-jobs)
